@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI vs. Agentic Workflow Comparison</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; 
+        }
+        .workflow-box {
+            fill: white;
+            stroke: #d1d5db; 
+            stroke-width: 1.5px;
+            rx: 8px;
+            ry: 8px;
+        }
+        .workflow-text {
+            font-size: 13px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: #374151; 
+            font-weight: 500;
+        }
+        .diagram-arrow {
+            stroke: #6b7280; 
+            stroke-width: 1.5px;
+        }
+        .diagram-arrow-head {
+            fill: #6b7280; 
+        }
+        .agent-container-bg {
+            fill: rgba(167, 139, 250, 0.1); 
+            stroke: #a78bfa; 
+            stroke-width: 1.5px;
+            stroke-dasharray: 4,4;
+            rx: 10px;
+            ry: 10px;
+        }
+        .agent-section-text-label {
+            font-size: 14px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            font-weight: 600;
+            fill: #6d28d9; 
+        }
+        .agent-badge-rect {
+            fill: #a78bfa; 
+            rx: 6px;
+            ry: 6px;
+        }
+        .agent-badge-text-label {
+            fill: white;
+            font-size: 11px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            font-weight: 500;
+        }
+        .result-badge-rect {
+            fill: #ef4444; 
+            rx: 15px;
+            ry: 15px;
+        }
+        .result-badge-text-label {
+            fill: white;
+            font-size: 11px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            font-weight: 500;
+        }
+        .step {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .step.active {
+            display: block;
+            opacity: 1;
+        }
+        .output-panel-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .output-panel-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .output-panel-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 10px;
+        }
+        .output-panel-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">Understanding AI Workflow Approaches</h1>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-12">
+            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
+                <div class="workflow-header bg-blue-500 text-white p-5">
+                    <h2 class="text-xl font-semibold">AI Workflow (Non-Agentic)</h2>
+                </div>
+                <div class="workflow-body p-6 flex-grow">
+                    <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+                        <div class="diagram-container lg:flex-1 md:h-48">
+                            <svg viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <rect class="workflow-box" x="10" y="10" width="90" height="40" />
+                                <text class="workflow-text" x="55" y="30">User Query</text>
+                                <line class="diagram-arrow" x1="100" y1="30" x2="140" y2="30" />
+                                <polygon class="diagram-arrow-head" points="140,30 132,26 132,34" />
+                                <rect class="workflow-box" x="145" y="10" width="110" height="40" />
+                                <text class="workflow-text" x="200" y="30">Act on Query</text>
+                                <line class="diagram-arrow" x1="255" y1="30" x2="295" y2="30" />
+                                <polygon class="diagram-arrow-head" points="295,30 287,26 287,34" />
+                                <rect class="workflow-box" x="300" y="10" width="90" height="40" />
+                                <text class="workflow-text" x="345" y="30">Response</text>
+                            </svg>
+                        </div>
+                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 lg:flex-1">
+                            <p class="text-sm text-gray-700 mb-3">This approach uses AI to directly process user queries in a single pass. The AI model analyzes the query and generates a response without breaking down the process into distinct steps.</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li>Limited to knowledge in training data</li>
+                                <li>Single processing step (no external tools)</li>
+                                <li>Can produce generic responses</li>
+                                <li>No self-correction based on intermediate results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
+                <div class="workflow-header bg-violet-500 text-white p-5">
+                    <h2 class="text-xl font-semibold">Agentic Workflow</h2>
+                </div>
+                <div class="workflow-body p-6 flex-grow">
+                     <div class="flex flex-col lg:flex-row lg:items-start gap-6">
+                        <div class="diagram-container lg:flex-1 md:h-48">
+                            <svg viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <rect class="agent-container-bg" x="70" y="10" width="360" height="120" />
+                                <rect class="agent-badge-rect" x="380" y="0" width="60" height="20" />
+                                <text class="agent-badge-text-label" x="410" y="10">AI Agent</text>
+                                <text class="agent-section-text-label" x="115" y="30">Planning</text>
+                                <text class="agent-section-text-label" x="250" y="30">Tool Use</text>
+                                <text class="agent-section-text-label" x="385" y="30">Reflection</text>
+                                <rect class="workflow-box" x="5" y="70" width="80" height="35" />
+                                <text class="workflow-text" x="45" y="87.5">User Query</text>
+                                <line class="diagram-arrow" x1="85" y1="87.5" x2="105" y2="87.5" />
+                                <polygon class="diagram-arrow-head" points="105,87.5 97,83.5 97,91.5" />
+                                <rect class="workflow-box" x="110" y="70" width="80" height="35" />
+                                <text class="workflow-text" x="150" y="87.5">Make Plan</text>
+                                <line class="diagram-arrow" x1="190" y1="87.5" x2="210" y2="87.5" />
+                                <polygon class="diagram-arrow-head" points="210,87.5 202,83.5 202,91.5" />
+                                <rect class="workflow-box" x="215" y="70" width="90" height="35" />
+                                <text class="workflow-text" x="260" y="82.5">Execute</text>
+                                <text class="workflow-text" x="260" y="95.5">(Tools)</text>
+                                <line class="diagram-arrow" x1="305" y1="87.5" x2="325" y2="87.5" />
+                                <polygon class="diagram-arrow-head" points="325,87.5 317,83.5 317,91.5" />
+                                <rect class="workflow-box" x="330" y="70" width="90" height="35" />
+                                <text class="workflow-text" x="375" y="82.5">Reflect</text>
+                                 <text class="workflow-text" x="375" y="95.5">(Results)</text>
+                                <line class="diagram-arrow" x1="420" y1="87.5" x2="440" y2="87.5" />
+                                <polygon class="diagram-arrow-head" points="440,87.5 432,83.5 432,91.5" />
+                                <rect class="workflow-box" x="445" y="70" width="50" height="35" />
+                                <text class="workflow-text" x="470" y="87.5">Out</text>
+                                <path d="M 375 105 C 375 170, 150 170, 150 105" fill="none" class="diagram-arrow" />
+                                <polygon class="diagram-arrow-head" points="150,105 146,113 154,113" />
+                                <rect class="result-badge-rect" x="220" y="140" width="100" height="22" />
+                                <text class="result-badge-text-label" x="270" y="151">If results not OK</text>
+                            </svg>
+                        </div>
+                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-violet-500 lg:flex-1">
+                            <p class="text-sm text-gray-700 mb-3">The agentic workflow empowers AI to act more autonomously through a multi-step, iterative process:</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li><strong>Planning phase:</strong> Strategically breaks down the query.</li>
+                                <li><strong>Tool usage:</strong> Accesses external data and APIs.</li>
+                                <li><strong>Reflection capability:</strong> Evaluates intermediate results.</li>
+                                <li><strong>Iterative improvement:</strong> Loops back if needed.</li>
+                                <li><strong>Context-aware responses:</strong> Provides personalized answers.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="interactive-area bg-white p-6 md:p-8 rounded-xl shadow-lg">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-2">Interactive Demo</h2>
+            <p class="text-gray-600 mb-6">Enter a query to see a simplified simulation of how each workflow might process it.</p>
+
+            <div class="input-section flex flex-col sm:flex-row gap-3 mb-8">
+                <input type="text" id="query-input" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" placeholder="e.g., Find top-rated Italian restaurants near me" value="Find the best coffee shop nearby with free WiFi">
+                <button id="process-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
+                    Process Query
+                </button>
+            </div>
+
+            <div class="output-section grid md:grid-cols-2 gap-6">
+                <div class="output-panel ai-output-panel border border-blue-300 rounded-lg">
+                    <div class="output-title bg-blue-100 text-blue-700 font-semibold p-4 rounded-t-lg">AI Workflow Output</div>
+                    <div id="ai-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                    </div>
+                </div>
+
+                <div class="output-panel agentic-output-panel border border-violet-300 rounded-lg">
+                    <div class="output-title bg-violet-100 text-violet-700 font-semibold p-4 rounded-t-lg">Agentic Workflow Output</div>
+                    <div id="agentic-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <p class="text-sm text-gray-500">&copy; 2024 AI Workflow Explorer. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        const queryInput = document.getElementById('query-input');
+        const processBtn = document.getElementById('process-btn');
+        const aiStepsContainer = document.getElementById('ai-steps');
+        const agenticStepsContainer = document.getElementById('agentic-steps');
+
+        const aiStepContents = [
+            { delay: 500, queryUpdate: true, message: "1. Receiving query..." },
+            { delay: 1000, message: "2. Processing with AI model..." },
+            { delay: 1500, message: "3. Generating response:", details: "Based on my training data, popular coffee chains like 'The Daily Grind' or 'Brew & Bean' often have WiFi. For specific local options, I'd suggest checking online review platforms." }
+        ];
+
+        const agenticStepContents = [
+            { delay: 300, queryUpdate: true, message: "1. Receiving query..." },
+            { delay: 700, message: "2. Planning approach:", detailsList: ["Determine user's current location (simulated).", "Search for \"coffee shop\" + \"free WiFi\" via Maps API.", "Filter results by top ratings.", "Summarize findings."] },
+            { delay: 1000, message: "3. Executing: Using Maps API tool...", details: "Simulating search for \"coffee shop with free WiFi\" near Warsaw, PL..." },
+            { delay: 800, message: "4. Reflecting on initial results:", details: "Found 15 potential coffee shops. Some have unverified WiFi or mixed reviews." },
+            { delay: 1000, message: "5. Executing: Filtering and verifying...", details: "Cross-referencing with review data for WiFi confirmation and rating > 4.0 stars." },
+            { delay: 800, message: "6. Reflecting on refined results:", details: "Identified 3 highly-rated coffee shops with confirmed free WiFi: \"Kawiarnia Relaks\", \"Ministry of Coffee\", \"Coffeedesk\"." },
+            { delay: 1200, message: "7. Generating final response:", details: "\"The best coffee shops near you (Warsaw) with free WiFi are: 1. Kawiarnia Relaks (4.8*), 2. Ministry of Coffee (4.7*), 3. Coffeedesk (4.6*). All offer good atmosphere for working.\"" }
+        ];
+
+        function simulateWorkflow(type, stepContents, container) {
+            container.innerHTML = '';
+            let cumulativeDelay = 0;
+            const userQuery = queryInput.value || "No query entered.";
+
+            stepContents.forEach((stepContent, index) => {
+                setTimeout(() => {
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = `step step-${index + 1} p-3 rounded-md transition-all duration-500 ease-in-out transform opacity-0 translate-y-2`;
+                    stepDiv.classList.add(type === 'ai' ? 'bg-blue-50' : 'bg-violet-50');
+                    
+                    let htmlContent = `<p class="font-medium text-sm">${stepContent.message}</p>`;
+                    
+                    if (stepContent.queryUpdate) {
+                         htmlContent += `<p class="text-xs text-gray-500 mt-1"><em>Query: "${userQuery}"</em></p>`;
+                    }
+                    if (stepContent.details) {
+                        htmlContent += `<p class="text-xs text-gray-600 mt-1">${stepContent.details}</p>`;
+                    }
+                    if (stepContent.detailsList) {
+                        htmlContent += `<ol class="list-decimal list-inside text-xs text-gray-600 mt-1 space-y-0.5">`;
+                        stepContent.detailsList.forEach(item => {
+                            htmlContent += `<li>${item}</li>`;
+                        });
+                        htmlContent += `</ol>`;
+                    }
+                    
+                    stepDiv.innerHTML = htmlContent;
+                    container.appendChild(stepDiv);
+
+                    setTimeout(() => {
+                        stepDiv.classList.add('active');
+                        stepDiv.classList.remove('opacity-0', 'translate-y-2');
+                        stepDiv.classList.add('opacity-100', 'translate-y-0');
+                        container.scrollTop = container.scrollHeight;
+                    }, 50); 
+
+                }, cumulativeDelay);
+                cumulativeDelay += stepContent.delay;
+            });
+        }
+
+        processBtn.addEventListener('click', function() {
+            const query = queryInput.value;
+            if (!query.trim()) {
+                queryInput.focus();
+                return;
+            }
+            
+            processBtn.disabled = true;
+            processBtn.textContent = 'Processing...';
+            processBtn.classList.add('opacity-75', 'cursor-not-allowed');
+
+            simulateWorkflow('ai', aiStepContents, aiStepsContainer);
+            simulateWorkflow('agentic', agenticStepContents, agenticStepsContainer);
+            
+            const maxAiDelay = aiStepContents.reduce((sum, step) => sum + step.delay, 0);
+            const maxAgenticDelay = agenticStepContents.reduce((sum, step) => sum + step.delay, 0);
+            const maxTotalDelay = Math.max(maxAiDelay, maxAgenticDelay);
+
+            setTimeout(() => {
+                processBtn.disabled = false;
+                processBtn.textContent = 'Process Query';
+                processBtn.classList.remove('opacity-75', 'cursor-not-allowed');
+            }, maxTotalDelay + 100); 
+        });
+
+        window.addEventListener('load', function() {
+            aiStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the AI workflow.</p>';
+            agenticStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the Agentic workflow.</p>';
+        });
+    </script>
+</body>
+</html>
