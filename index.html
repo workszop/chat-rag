@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI vs. Agentic Workflow Comparison</title>
+    <title>AI Workflow Comparison: Chat, RAG & Agentic AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -97,12 +97,13 @@
     </style>
 </head>
 <body class="text-gray-800">
-    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
         <header class="text-center mb-10">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-700">Understanding AI Workflow Approaches</h1>
+            <p class="text-gray-600 mt-3">Compare Chat, RAG, and Agentic AI approaches</p>
         </header>
 
-        <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="grid md:grid-cols-3 gap-6 mb-12">
             <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
                 <div class="workflow-header bg-blue-500 text-white p-5">
                     <h2 class="text-xl font-semibold">AI Workflow (Non-Agentic)</h2>
@@ -130,6 +131,52 @@
                                 <li>Single processing step (no external tools)</li>
                                 <li>Can produce generic responses</li>
                                 <li>No self-correction based on intermediate results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
+                <div class="workflow-header bg-emerald-500 text-white p-5">
+                    <h2 class="text-xl font-semibold">RAG Workflow</h2>
+                </div>
+                <div class="workflow-body p-6 flex-grow">
+                    <div class="flex flex-col gap-6">
+                        <div class="diagram-container">
+                            <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <rect class="workflow-box" x="10" y="10" width="80" height="35" />
+                                <text class="workflow-text" x="50" y="27.5">User Query</text>
+                                <line class="diagram-arrow" x1="90" y1="27.5" x2="110" y2="27.5" />
+                                <polygon class="diagram-arrow-head" points="110,27.5 102,23.5 102,31.5" />
+                                <rect class="workflow-box" x="115" y="10" width="90" height="35" />
+                                <text class="workflow-text" x="160" y="22.5">Retrieve</text>
+                                <text class="workflow-text" x="160" y="32.5">(Search KB)</text>
+                                <line class="diagram-arrow" x1="205" y1="27.5" x2="225" y2="27.5" />
+                                <polygon class="diagram-arrow-head" points="225,27.5 217,23.5 217,31.5" />
+                                <rect class="workflow-box" x="230" y="10" width="80" height="35" />
+                                <text class="workflow-text" x="270" y="22.5">Augment</text>
+                                <text class="workflow-text" x="270" y="32.5">(Add Context)</text>
+                                <line class="diagram-arrow" x1="310" y1="27.5" x2="330" y2="27.5" />
+                                <polygon class="diagram-arrow-head" points="330,27.5 322,23.5 322,31.5" />
+                                <rect class="workflow-box" x="335" y="10" width="55" height="35" />
+                                <text class="workflow-text" x="362.5" y="22.5">Generate</text>
+                                <text class="workflow-text" x="362.5" y="32.5">(LLM)</text>
+                                <rect class="workflow-box" x="115" y="70" width="170" height="40" style="fill: #d1fae5; stroke: #10b981;" />
+                                <text class="workflow-text" x="200" y="85" style="fill: #065f46; font-size: 11px;">Knowledge Base / Vector DB</text>
+                                <text class="workflow-text" x="200" y="97" style="fill: #065f46; font-size: 10px;">(Documents, FAQs, Data)</text>
+                                <line class="diagram-arrow" x1="160" y1="45" x2="160" y2="65" style="stroke-dasharray: 3,3;" />
+                                <polygon class="diagram-arrow-head" points="160,65 156,57 164,57" />
+                            </svg>
+                        </div>
+                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-500">
+                            <p class="text-sm text-gray-700 mb-3">RAG combines AI with information retrieval to provide accurate, contextually-grounded responses:</p>
+                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
+                                <li><strong>Retrieval step:</strong> Searches knowledge base for relevant documents.</li>
+                                <li><strong>Context augmentation:</strong> Adds retrieved information to the query.</li>
+                                <li><strong>Grounded generation:</strong> LLM generates response using actual data.</li>
+                                <li><strong>Reduced hallucinations:</strong> Answers based on verified sources.</li>
+                                <li><strong>Up-to-date information:</strong> Knowledge base can be updated independently.</li>
                             </ul>
                         </div>
                     </div>
@@ -202,10 +249,16 @@
                 </button>
             </div>
 
-            <div class="output-section grid md:grid-cols-2 gap-6">
+            <div class="output-section grid md:grid-cols-3 gap-6">
                 <div class="output-panel ai-output-panel border border-blue-300 rounded-lg">
                     <div class="output-title bg-blue-100 text-blue-700 font-semibold p-4 rounded-t-lg">AI Workflow Output</div>
                     <div id="ai-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                    </div>
+                </div>
+
+                <div class="output-panel rag-output-panel border border-emerald-300 rounded-lg">
+                    <div class="output-title bg-emerald-100 text-emerald-700 font-semibold p-4 rounded-t-lg">RAG Workflow Output</div>
+                    <div id="rag-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
                     </div>
                 </div>
 
@@ -226,12 +279,22 @@
         const queryInput = document.getElementById('query-input');
         const processBtn = document.getElementById('process-btn');
         const aiStepsContainer = document.getElementById('ai-steps');
+        const ragStepsContainer = document.getElementById('rag-steps');
         const agenticStepsContainer = document.getElementById('agentic-steps');
 
         const aiStepContents = [
             { delay: 500, queryUpdate: true, message: "1. Receiving query..." },
             { delay: 1000, message: "2. Processing with AI model..." },
             { delay: 1500, message: "3. Generating response:", details: "Based on my training data, popular coffee chains like 'The Daily Grind' or 'Brew & Bean' often have WiFi. For specific local options, I'd suggest checking online review platforms." }
+        ];
+
+        const ragStepContents = [
+            { delay: 400, queryUpdate: true, message: "1. Receiving query..." },
+            { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'coffee shops', 'WiFi', 'nearby locations'..." },
+            { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #47: List of coffee shops in Warsaw with amenities", "Doc #92: WiFi availability at local cafes (updated Nov 2024)", "Doc #134: Customer reviews for coffee shops near city center"] },
+            { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved information to enhance LLM prompt with factual data from knowledge base." },
+            { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide accurate answer..." },
+            { delay: 1200, message: "6. Final response:", details: "\"Based on our updated database, here are the best coffee shops near you with free WiFi: 1. Kawiarnia Relaks (ul. Nowy Świat 42) - Fast WiFi, 4.8★ rating. 2. Ministry of Coffee (ul. Krucza 16) - Reliable connection, popular with remote workers. 3. Coffeedesk (ul. Mokotowska 65) - Excellent WiFi speed, quiet atmosphere.\"" }
         ];
 
         const agenticStepContents = [
@@ -253,7 +316,8 @@
                 setTimeout(() => {
                     const stepDiv = document.createElement('div');
                     stepDiv.className = `step step-${index + 1} p-3 rounded-md transition-all duration-500 ease-in-out transform opacity-0 translate-y-2`;
-                    stepDiv.classList.add(type === 'ai' ? 'bg-blue-50' : 'bg-violet-50');
+                    const bgColor = type === 'ai' ? 'bg-blue-50' : type === 'rag' ? 'bg-emerald-50' : 'bg-violet-50';
+                    stepDiv.classList.add(bgColor);
                     
                     let htmlContent = `<p class="font-medium text-sm">${stepContent.message}</p>`;
                     
@@ -298,11 +362,13 @@
             processBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
             simulateWorkflow('ai', aiStepContents, aiStepsContainer);
+            simulateWorkflow('rag', ragStepContents, ragStepsContainer);
             simulateWorkflow('agentic', agenticStepContents, agenticStepsContainer);
-            
+
             const maxAiDelay = aiStepContents.reduce((sum, step) => sum + step.delay, 0);
+            const maxRagDelay = ragStepContents.reduce((sum, step) => sum + step.delay, 0);
             const maxAgenticDelay = agenticStepContents.reduce((sum, step) => sum + step.delay, 0);
-            const maxTotalDelay = Math.max(maxAiDelay, maxAgenticDelay);
+            const maxTotalDelay = Math.max(maxAiDelay, maxRagDelay, maxAgenticDelay);
 
             setTimeout(() => {
                 processBtn.disabled = false;
@@ -313,6 +379,7 @@
 
         window.addEventListener('load', function() {
             aiStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the AI workflow.</p>';
+            ragStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the RAG workflow.</p>';
             agenticStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the Agentic workflow.</p>';
         });
     </script>
