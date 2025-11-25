@@ -111,33 +111,7 @@
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 450 90" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <!-- User Query -->
-                                <rect class="workflow-box" x="10" y="25" width="100" height="40" />
-                                <text class="workflow-text" x="60" y="40" style="font-size: 12px; font-weight: 600;">User Query</text>
-                                <text class="workflow-text" x="60" y="52" style="font-size: 9px; fill: #6b7280;">Input</text>
-
-                                <!-- Arrow 1 -->
-                                <line class="diagram-arrow" x1="110" y1="45" x2="150" y2="45" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="150,45 142,41 142,49" />
-
-                                <!-- LLM Processing -->
-                                <rect class="workflow-box" x="155" y="25" width="130" height="40" />
-                                <text class="workflow-text" x="220" y="40" style="font-size: 12px; font-weight: 600;">LLM Processes</text>
-                                <text class="workflow-text" x="220" y="52" style="font-size: 9px; fill: #6b7280;">Single-step generation</text>
-
-                                <!-- Arrow 2 -->
-                                <line class="diagram-arrow" x1="285" y1="45" x2="325" y2="45" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="325,45 317,41 317,49" />
-
-                                <!-- Response -->
-                                <rect class="workflow-box" x="330" y="25" width="110" height="40" />
-                                <text class="workflow-text" x="385" y="40" style="font-size: 12px; font-weight: 600;">Response</text>
-                                <text class="workflow-text" x="385" y="52" style="font-size: 9px; fill: #6b7280;">Text output only</text>
-
-                                <!-- Note -->
-                                <text x="225" y="82" style="font-size: 10px; fill: #6b7280; text-anchor: middle; font-style: italic;">No external tools or data sources</text>
-                            </svg>
+                            <img src="chat.png" alt="AI Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
                             <p class="text-sm text-gray-700 mb-3">This approach uses AI to directly process user queries in a single pass. The AI model analyzes the query and generates a response without breaking down the process into distinct steps.</p>
@@ -159,51 +133,7 @@
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <!-- User Query -->
-                                <rect class="workflow-box" x="10" y="10" width="85" height="40" />
-                                <text class="workflow-text" x="52.5" y="25" style="font-size: 12px; font-weight: 600;">User Query</text>
-                                <text class="workflow-text" x="52.5" y="37" style="font-size: 9px; fill: #6b7280;">Input</text>
-
-                                <!-- Arrow 1 -->
-                                <line class="diagram-arrow" x1="95" y1="30" x2="125" y2="30" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="125,30 117,26 117,34" />
-
-                                <!-- Retrieve Step -->
-                                <rect class="workflow-box" x="130" y="10" width="95" height="40" />
-                                <text class="workflow-text" x="177.5" y="25" style="font-size: 12px; font-weight: 600;">1. Retrieve</text>
-                                <text class="workflow-text" x="177.5" y="37" style="font-size: 9px; fill: #6b7280;">Search docs</text>
-
-                                <!-- Arrow pointing down to KB -->
-                                <line class="diagram-arrow" x1="177.5" y1="50" x2="177.5" y2="75" style="stroke-dasharray: 4,4;" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="177.5,75 173.5,67 181.5,67" />
-                                <line class="diagram-arrow" x1="177.5" y1="105" x2="177.5" y2="50" style="stroke-dasharray: 4,4;" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="177.5,50 173.5,58 181.5,58" />
-
-                                <!-- Knowledge Base -->
-                                <rect x="90" y="80" width="175" height="50" style="fill: #d1fae5; stroke: #10b981; stroke-width: 2; rx: 8; ry: 8;" />
-                                <text class="workflow-text" x="177.5" y="97" style="fill: #065f46; font-size: 12px; font-weight: 600;">Knowledge Base / Vector DB</text>
-                                <text class="workflow-text" x="177.5" y="110" style="fill: #047857; font-size: 9px;">Documents, FAQs, Data</text>
-                                <text class="workflow-text" x="177.5" y="122" style="fill: #047857; font-size: 9px;">Embeddings Search</text>
-
-                                <!-- Arrow 2 -->
-                                <line class="diagram-arrow" x1="225" y1="30" x2="255" y2="30" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="255,30 247,26 247,34" />
-
-                                <!-- Augment Step -->
-                                <rect class="workflow-box" x="260" y="10" width="95" height="40" />
-                                <text class="workflow-text" x="307.5" y="25" style="font-size: 12px; font-weight: 600;">2. Augment</text>
-                                <text class="workflow-text" x="307.5" y="37" style="font-size: 9px; fill: #6b7280;">Add context</text>
-
-                                <!-- Arrow 3 -->
-                                <line class="diagram-arrow" x1="355" y1="30" x2="385" y2="30" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="385,30 377,26 377,34" />
-
-                                <!-- Generate Step -->
-                                <rect class="workflow-box" x="390" y="10" width="85" height="40" />
-                                <text class="workflow-text" x="432.5" y="25" style="font-size: 12px; font-weight: 600;">3. Generate</text>
-                                <text class="workflow-text" x="432.5" y="37" style="font-size: 9px; fill: #6b7280;">LLM output</text>
-                            </svg>
+                            <img src="rag.png" alt="RAG Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-500">
                             <p class="text-sm text-gray-700 mb-3">RAG combines AI with information retrieval to provide accurate, contextually-grounded responses:</p>
@@ -226,69 +156,7 @@
                 <div class="workflow-body p-6 flex-grow">
                      <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <!-- Agent Container -->
-                                <rect class="agent-container-bg" x="90" y="20" width="445" height="110" />
-                                <rect class="agent-badge-rect" x="465" y="8" width="65" height="22" />
-                                <text class="agent-badge-text-label" x="497.5" y="20">AI Agent</text>
-
-                                <!-- Section Labels -->
-                                <text class="agent-section-text-label" x="145" y="40" style="font-size: 11px;">① Planning</text>
-                                <text class="agent-section-text-label" x="285" y="40" style="font-size: 11px;">② Execution</text>
-                                <text class="agent-section-text-label" x="440" y="40" style="font-size: 11px;">③ Reflection</text>
-
-                                <!-- User Query -->
-                                <rect class="workflow-box" x="5" y="70" width="90" height="40" />
-                                <text class="workflow-text" x="50" y="85" style="font-size: 12px; font-weight: 600;">Query</text>
-                                <text class="workflow-text" x="50" y="97" style="font-size: 9px; fill: #6b7280;">Input</text>
-
-                                <!-- Arrow to Plan -->
-                                <line class="diagram-arrow" x1="95" y1="90" x2="120" y2="90" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="120,90 112,86 112,94" />
-
-                                <!-- Plan -->
-                                <rect class="workflow-box" x="125" y="70" width="90" height="40" />
-                                <text class="workflow-text" x="170" y="85" style="font-size: 12px; font-weight: 600;">Plan</text>
-                                <text class="workflow-text" x="170" y="97" style="font-size: 9px; fill: #6b7280;">Break down</text>
-
-                                <!-- Arrow to Execute -->
-                                <line class="diagram-arrow" x1="215" y1="90" x2="240" y2="90" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="240,90 232,86 232,94" />
-
-                                <!-- Execute -->
-                                <rect class="workflow-box" x="245" y="70" width="110" height="40" />
-                                <text class="workflow-text" x="300" y="85" style="font-size: 12px; font-weight: 600;">Execute</text>
-                                <text class="workflow-text" x="300" y="97" style="font-size: 9px; fill: #6b7280;">Use tools/APIs</text>
-
-                                <!-- Arrow to Reflect -->
-                                <line class="diagram-arrow" x1="355" y1="90" x2="380" y2="90" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="380,90 372,86 372,94" />
-
-                                <!-- Reflect -->
-                                <rect class="workflow-box" x="385" y="70" width="110" height="40" />
-                                <text class="workflow-text" x="440" y="85" style="font-size: 12px; font-weight: 600;">Reflect</text>
-                                <text class="workflow-text" x="440" y="97" style="font-size: 9px; fill: #6b7280;">Evaluate results</text>
-
-                                <!-- Arrow to Output -->
-                                <line class="diagram-arrow" x1="495" y1="90" x2="520" y2="90" stroke-width="2"/>
-                                <polygon class="diagram-arrow-head" points="520,90 512,86 512,94" />
-
-                                <!-- Output -->
-                                <rect class="workflow-box" x="525" y="70" width="30" height="40" style="fill: #f0fdf4; stroke: #10b981; stroke-width: 2;"/>
-                                <text class="workflow-text" x="540" y="92" style="font-size: 11px; font-weight: 600; fill: #059669;">✓</text>
-
-                                <!-- Feedback Loop -->
-                                <path d="M 440 110 Q 440 165, 290 165 Q 170 165, 170 110" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,3"/>
-                                <polygon points="170,110 166,118 174,118" fill="#ef4444" />
-
-                                <!-- Loop Label -->
-                                <rect x="235" y="155" width="120" height="24" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5" rx="12" ry="12"/>
-                                <text x="295" y="169" style="font-size: 10px; fill: #dc2626; text-anchor: middle; font-weight: 600; dominant-baseline: middle;">↻ Iterate if needed</text>
-
-                                <!-- Tools indicator -->
-                                <rect x="245" y="115" width="110" height="12" fill="#ddd6fe" rx="6" ry="6" opacity="0.7"/>
-                                <text x="300" y="122.5" style="font-size: 8px; fill: #6d28d9; text-anchor: middle; dominant-baseline: middle; font-weight: 500;">Tools: APIs, DB, Calendar...</text>
-                            </svg>
+                            <img src="agent.png" alt="Agentic Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-violet-500">
                             <p class="text-sm text-gray-700 mb-3">The agentic workflow empowers AI to act more autonomously through a multi-step, iterative process:</p>
