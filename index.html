@@ -111,17 +111,32 @@
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 400 60" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <rect class="workflow-box" x="10" y="10" width="90" height="40" />
-                                <text class="workflow-text" x="55" y="30">User Query</text>
-                                <line class="diagram-arrow" x1="100" y1="30" x2="140" y2="30" />
-                                <polygon class="diagram-arrow-head" points="140,30 132,26 132,34" />
-                                <rect class="workflow-box" x="145" y="10" width="110" height="40" />
-                                <text class="workflow-text" x="200" y="30">Act on Query</text>
-                                <line class="diagram-arrow" x1="255" y1="30" x2="295" y2="30" />
-                                <polygon class="diagram-arrow-head" points="295,30 287,26 287,34" />
-                                <rect class="workflow-box" x="300" y="10" width="90" height="40" />
-                                <text class="workflow-text" x="345" y="30">Response</text>
+                            <svg viewBox="0 0 450 90" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <!-- User Query -->
+                                <rect class="workflow-box" x="10" y="25" width="100" height="40" />
+                                <text class="workflow-text" x="60" y="40" style="font-size: 12px; font-weight: 600;">User Query</text>
+                                <text class="workflow-text" x="60" y="52" style="font-size: 9px; fill: #6b7280;">Input</text>
+
+                                <!-- Arrow 1 -->
+                                <line class="diagram-arrow" x1="110" y1="45" x2="150" y2="45" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="150,45 142,41 142,49" />
+
+                                <!-- LLM Processing -->
+                                <rect class="workflow-box" x="155" y="25" width="130" height="40" />
+                                <text class="workflow-text" x="220" y="40" style="font-size: 12px; font-weight: 600;">LLM Processes</text>
+                                <text class="workflow-text" x="220" y="52" style="font-size: 9px; fill: #6b7280;">Single-step generation</text>
+
+                                <!-- Arrow 2 -->
+                                <line class="diagram-arrow" x1="285" y1="45" x2="325" y2="45" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="325,45 317,41 317,49" />
+
+                                <!-- Response -->
+                                <rect class="workflow-box" x="330" y="25" width="110" height="40" />
+                                <text class="workflow-text" x="385" y="40" style="font-size: 12px; font-weight: 600;">Response</text>
+                                <text class="workflow-text" x="385" y="52" style="font-size: 9px; fill: #6b7280;">Text output only</text>
+
+                                <!-- Note -->
+                                <text x="225" y="82" style="font-size: 10px; fill: #6b7280; text-anchor: middle; font-style: italic;">No external tools or data sources</text>
                             </svg>
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
@@ -144,29 +159,50 @@
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <rect class="workflow-box" x="10" y="10" width="80" height="35" />
-                                <text class="workflow-text" x="50" y="27.5">User Query</text>
-                                <line class="diagram-arrow" x1="90" y1="27.5" x2="110" y2="27.5" />
-                                <polygon class="diagram-arrow-head" points="110,27.5 102,23.5 102,31.5" />
-                                <rect class="workflow-box" x="115" y="10" width="90" height="35" />
-                                <text class="workflow-text" x="160" y="22.5">Retrieve</text>
-                                <text class="workflow-text" x="160" y="32.5">(Search KB)</text>
-                                <line class="diagram-arrow" x1="205" y1="27.5" x2="225" y2="27.5" />
-                                <polygon class="diagram-arrow-head" points="225,27.5 217,23.5 217,31.5" />
-                                <rect class="workflow-box" x="230" y="10" width="80" height="35" />
-                                <text class="workflow-text" x="270" y="22.5">Augment</text>
-                                <text class="workflow-text" x="270" y="32.5">(Add Context)</text>
-                                <line class="diagram-arrow" x1="310" y1="27.5" x2="330" y2="27.5" />
-                                <polygon class="diagram-arrow-head" points="330,27.5 322,23.5 322,31.5" />
-                                <rect class="workflow-box" x="335" y="10" width="55" height="35" />
-                                <text class="workflow-text" x="362.5" y="22.5">Generate</text>
-                                <text class="workflow-text" x="362.5" y="32.5">(LLM)</text>
-                                <rect class="workflow-box" x="115" y="70" width="170" height="40" style="fill: #d1fae5; stroke: #10b981;" />
-                                <text class="workflow-text" x="200" y="85" style="fill: #065f46; font-size: 11px;">Knowledge Base / Vector DB</text>
-                                <text class="workflow-text" x="200" y="97" style="fill: #065f46; font-size: 10px;">(Documents, FAQs, Data)</text>
-                                <line class="diagram-arrow" x1="160" y1="45" x2="160" y2="65" style="stroke-dasharray: 3,3;" />
-                                <polygon class="diagram-arrow-head" points="160,65 156,57 164,57" />
+                            <svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <!-- User Query -->
+                                <rect class="workflow-box" x="10" y="10" width="85" height="40" />
+                                <text class="workflow-text" x="52.5" y="25" style="font-size: 12px; font-weight: 600;">User Query</text>
+                                <text class="workflow-text" x="52.5" y="37" style="font-size: 9px; fill: #6b7280;">Input</text>
+
+                                <!-- Arrow 1 -->
+                                <line class="diagram-arrow" x1="95" y1="30" x2="125" y2="30" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="125,30 117,26 117,34" />
+
+                                <!-- Retrieve Step -->
+                                <rect class="workflow-box" x="130" y="10" width="95" height="40" />
+                                <text class="workflow-text" x="177.5" y="25" style="font-size: 12px; font-weight: 600;">1. Retrieve</text>
+                                <text class="workflow-text" x="177.5" y="37" style="font-size: 9px; fill: #6b7280;">Search docs</text>
+
+                                <!-- Arrow pointing down to KB -->
+                                <line class="diagram-arrow" x1="177.5" y1="50" x2="177.5" y2="75" style="stroke-dasharray: 4,4;" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="177.5,75 173.5,67 181.5,67" />
+                                <line class="diagram-arrow" x1="177.5" y1="105" x2="177.5" y2="50" style="stroke-dasharray: 4,4;" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="177.5,50 173.5,58 181.5,58" />
+
+                                <!-- Knowledge Base -->
+                                <rect x="90" y="80" width="175" height="50" style="fill: #d1fae5; stroke: #10b981; stroke-width: 2; rx: 8; ry: 8;" />
+                                <text class="workflow-text" x="177.5" y="97" style="fill: #065f46; font-size: 12px; font-weight: 600;">Knowledge Base / Vector DB</text>
+                                <text class="workflow-text" x="177.5" y="110" style="fill: #047857; font-size: 9px;">Documents, FAQs, Data</text>
+                                <text class="workflow-text" x="177.5" y="122" style="fill: #047857; font-size: 9px;">Embeddings Search</text>
+
+                                <!-- Arrow 2 -->
+                                <line class="diagram-arrow" x1="225" y1="30" x2="255" y2="30" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="255,30 247,26 247,34" />
+
+                                <!-- Augment Step -->
+                                <rect class="workflow-box" x="260" y="10" width="95" height="40" />
+                                <text class="workflow-text" x="307.5" y="25" style="font-size: 12px; font-weight: 600;">2. Augment</text>
+                                <text class="workflow-text" x="307.5" y="37" style="font-size: 9px; fill: #6b7280;">Add context</text>
+
+                                <!-- Arrow 3 -->
+                                <line class="diagram-arrow" x1="355" y1="30" x2="385" y2="30" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="385,30 377,26 377,34" />
+
+                                <!-- Generate Step -->
+                                <rect class="workflow-box" x="390" y="10" width="85" height="40" />
+                                <text class="workflow-text" x="432.5" y="25" style="font-size: 12px; font-weight: 600;">3. Generate</text>
+                                <text class="workflow-text" x="432.5" y="37" style="font-size: 9px; fill: #6b7280;">LLM output</text>
                             </svg>
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-500">
@@ -190,37 +226,68 @@
                 <div class="workflow-body p-6 flex-grow">
                      <div class="flex flex-col gap-6">
                         <div class="diagram-container">
-                            <svg viewBox="0 0 500 180" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <rect class="agent-container-bg" x="70" y="10" width="360" height="120" />
-                                <rect class="agent-badge-rect" x="380" y="0" width="60" height="20" />
-                                <text class="agent-badge-text-label" x="410" y="10">AI Agent</text>
-                                <text class="agent-section-text-label" x="115" y="30">Planning</text>
-                                <text class="agent-section-text-label" x="250" y="30">Tool Use</text>
-                                <text class="agent-section-text-label" x="385" y="30">Reflection</text>
-                                <rect class="workflow-box" x="5" y="70" width="80" height="35" />
-                                <text class="workflow-text" x="45" y="87.5">User Query</text>
-                                <line class="diagram-arrow" x1="85" y1="87.5" x2="105" y2="87.5" />
-                                <polygon class="diagram-arrow-head" points="105,87.5 97,83.5 97,91.5" />
-                                <rect class="workflow-box" x="110" y="70" width="80" height="35" />
-                                <text class="workflow-text" x="150" y="87.5">Make Plan</text>
-                                <line class="diagram-arrow" x1="190" y1="87.5" x2="210" y2="87.5" />
-                                <polygon class="diagram-arrow-head" points="210,87.5 202,83.5 202,91.5" />
-                                <rect class="workflow-box" x="215" y="70" width="90" height="35" />
-                                <text class="workflow-text" x="260" y="82.5">Execute</text>
-                                <text class="workflow-text" x="260" y="95.5">(Tools)</text>
-                                <line class="diagram-arrow" x1="305" y1="87.5" x2="325" y2="87.5" />
-                                <polygon class="diagram-arrow-head" points="325,87.5 317,83.5 317,91.5" />
-                                <rect class="workflow-box" x="330" y="70" width="90" height="35" />
-                                <text class="workflow-text" x="375" y="82.5">Reflect</text>
-                                 <text class="workflow-text" x="375" y="95.5">(Results)</text>
-                                <line class="diagram-arrow" x1="420" y1="87.5" x2="440" y2="87.5" />
-                                <polygon class="diagram-arrow-head" points="440,87.5 432,83.5 432,91.5" />
-                                <rect class="workflow-box" x="445" y="70" width="50" height="35" />
-                                <text class="workflow-text" x="470" y="87.5">Out</text>
-                                <path d="M 375 105 C 375 170, 150 170, 150 105" fill="none" class="diagram-arrow" />
-                                <polygon class="diagram-arrow-head" points="150,105 146,113 154,113" />
-                                <rect class="result-badge-rect" x="220" y="140" width="100" height="22" />
-                                <text class="result-badge-text-label" x="270" y="151">If results not OK</text>
+                            <svg viewBox="0 0 560 200" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
+                                <!-- Agent Container -->
+                                <rect class="agent-container-bg" x="90" y="20" width="445" height="110" />
+                                <rect class="agent-badge-rect" x="465" y="8" width="65" height="22" />
+                                <text class="agent-badge-text-label" x="497.5" y="20">AI Agent</text>
+
+                                <!-- Section Labels -->
+                                <text class="agent-section-text-label" x="145" y="40" style="font-size: 11px;">① Planning</text>
+                                <text class="agent-section-text-label" x="285" y="40" style="font-size: 11px;">② Execution</text>
+                                <text class="agent-section-text-label" x="440" y="40" style="font-size: 11px;">③ Reflection</text>
+
+                                <!-- User Query -->
+                                <rect class="workflow-box" x="5" y="70" width="90" height="40" />
+                                <text class="workflow-text" x="50" y="85" style="font-size: 12px; font-weight: 600;">Query</text>
+                                <text class="workflow-text" x="50" y="97" style="font-size: 9px; fill: #6b7280;">Input</text>
+
+                                <!-- Arrow to Plan -->
+                                <line class="diagram-arrow" x1="95" y1="90" x2="120" y2="90" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="120,90 112,86 112,94" />
+
+                                <!-- Plan -->
+                                <rect class="workflow-box" x="125" y="70" width="90" height="40" />
+                                <text class="workflow-text" x="170" y="85" style="font-size: 12px; font-weight: 600;">Plan</text>
+                                <text class="workflow-text" x="170" y="97" style="font-size: 9px; fill: #6b7280;">Break down</text>
+
+                                <!-- Arrow to Execute -->
+                                <line class="diagram-arrow" x1="215" y1="90" x2="240" y2="90" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="240,90 232,86 232,94" />
+
+                                <!-- Execute -->
+                                <rect class="workflow-box" x="245" y="70" width="110" height="40" />
+                                <text class="workflow-text" x="300" y="85" style="font-size: 12px; font-weight: 600;">Execute</text>
+                                <text class="workflow-text" x="300" y="97" style="font-size: 9px; fill: #6b7280;">Use tools/APIs</text>
+
+                                <!-- Arrow to Reflect -->
+                                <line class="diagram-arrow" x1="355" y1="90" x2="380" y2="90" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="380,90 372,86 372,94" />
+
+                                <!-- Reflect -->
+                                <rect class="workflow-box" x="385" y="70" width="110" height="40" />
+                                <text class="workflow-text" x="440" y="85" style="font-size: 12px; font-weight: 600;">Reflect</text>
+                                <text class="workflow-text" x="440" y="97" style="font-size: 9px; fill: #6b7280;">Evaluate results</text>
+
+                                <!-- Arrow to Output -->
+                                <line class="diagram-arrow" x1="495" y1="90" x2="520" y2="90" stroke-width="2"/>
+                                <polygon class="diagram-arrow-head" points="520,90 512,86 512,94" />
+
+                                <!-- Output -->
+                                <rect class="workflow-box" x="525" y="70" width="30" height="40" style="fill: #f0fdf4; stroke: #10b981; stroke-width: 2;"/>
+                                <text class="workflow-text" x="540" y="92" style="font-size: 11px; font-weight: 600; fill: #059669;">✓</text>
+
+                                <!-- Feedback Loop -->
+                                <path d="M 440 110 Q 440 165, 290 165 Q 170 165, 170 110" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="5,3"/>
+                                <polygon points="170,110 166,118 174,118" fill="#ef4444" />
+
+                                <!-- Loop Label -->
+                                <rect x="235" y="155" width="120" height="24" fill="#fee2e2" stroke="#ef4444" stroke-width="1.5" rx="12" ry="12"/>
+                                <text x="295" y="169" style="font-size: 10px; fill: #dc2626; text-anchor: middle; font-weight: 600; dominant-baseline: middle;">↻ Iterate if needed</text>
+
+                                <!-- Tools indicator -->
+                                <rect x="245" y="115" width="110" height="12" fill="#ddd6fe" rx="6" ry="6" opacity="0.7"/>
+                                <text x="300" y="122.5" style="font-size: 8px; fill: #6d28d9; text-anchor: middle; dominant-baseline: middle; font-weight: 500;">Tools: APIs, DB, Calendar...</text>
                             </svg>
                         </div>
                         <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-violet-500">
@@ -243,7 +310,7 @@
             <p class="text-gray-600 mb-6">Enter a query to see a simplified simulation of how each workflow might process it.</p>
 
             <div class="input-section flex flex-col sm:flex-row gap-3 mb-8">
-                <input type="text" id="query-input" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" placeholder="e.g., Find top-rated Italian restaurants near me" value="Find the best coffee shop nearby with free WiFi">
+                <input type="text" id="query-input" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.">
                 <button id="process-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
                     Process Query
                 </button>
@@ -285,26 +352,28 @@
         const aiStepContents = [
             { delay: 500, queryUpdate: true, message: "1. Receiving query..." },
             { delay: 1000, message: "2. Processing with AI model..." },
-            { delay: 1500, message: "3. Generating response:", details: "Based on my training data, popular coffee chains like 'The Daily Grind' or 'Brew & Bean' often have WiFi. For specific local options, I'd suggest checking online review platforms." }
+            { delay: 1500, message: "3. Generating response:", details: "To find your most listened artists, you can check your music streaming service's statistics page (like Spotify Wrapped or similar features). For concerts, visit ticketing websites like Songkick or Bandsintown. To add dates to your calendar, you'll need to manually enter them or use calendar app integrations if available." }
         ];
 
         const ragStepContents = [
             { delay: 400, queryUpdate: true, message: "1. Receiving query..." },
-            { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'coffee shops', 'WiFi', 'nearby locations'..." },
-            { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #47: List of coffee shops in Warsaw with amenities", "Doc #92: WiFi availability at local cafes (updated Nov 2024)", "Doc #134: Customer reviews for coffee shops near city center"] },
-            { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved information to enhance LLM prompt with factual data from knowledge base." },
-            { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide accurate answer..." },
-            { delay: 1200, message: "6. Final response:", details: "\"Based on our updated database, here are the best coffee shops near you with free WiFi: 1. Kawiarnia Relaks (ul. Nowy Świat 42) - Fast WiFi, 4.8★ rating. 2. Ministry of Coffee (ul. Krucza 16) - Reliable connection, popular with remote workers. 3. Coffeedesk (ul. Mokotowska 65) - Excellent WiFi speed, quiet atmosphere.\"" }
+            { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'concert listings', 'Warsaw events', 'artist schedules'..." },
+            { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules", "Doc #89: Guide to concert ticket booking and calendar integration"] },
+            { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved concert data and calendar integration info to enhance LLM prompt with factual information." },
+            { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide specific concert information..." },
+            { delay: 1200, message: "6. Final response:", details: "\"Based on our concert database (updated Nov 2024), several popular artists have upcoming shows in Warsaw. However, I cannot access your personal music listening data to determine your specific favorite artists. To get your listening stats, you'll need to connect to your streaming service API. Common venues in Warsaw include: Torwar Hall, Progresja, and COS Torwar. For calendar integration, I can provide iCal format links once specific concerts are identified.\"" }
         ];
 
         const agenticStepContents = [
             { delay: 300, queryUpdate: true, message: "1. Receiving query..." },
-            { delay: 700, message: "2. Planning approach:", detailsList: ["Determine user's current location (simulated).", "Search for \"coffee shop\" + \"free WiFi\" via Maps API.", "Filter results by top ratings.", "Summarize findings."] },
-            { delay: 1000, message: "3. Executing: Using Maps API tool...", details: "Simulating search for \"coffee shop with free WiFi\" near Warsaw, PL..." },
-            { delay: 800, message: "4. Reflecting on initial results:", details: "Found 15 potential coffee shops. Some have unverified WiFi or mixed reviews." },
-            { delay: 1000, message: "5. Executing: Filtering and verifying...", details: "Cross-referencing with review data for WiFi confirmation and rating > 4.0 stars." },
-            { delay: 800, message: "6. Reflecting on refined results:", details: "Identified 3 highly-rated coffee shops with confirmed free WiFi: \"Kawiarnia Relaks\", \"Ministry of Coffee\", \"Coffeedesk\"." },
-            { delay: 1200, message: "7. Generating final response:", details: "\"The best coffee shops near you (Warsaw) with free WiFi are: 1. Kawiarnia Relaks (4.8*), 2. Ministry of Coffee (4.7*), 3. Coffeedesk (4.6*). All offer good atmosphere for working.\"" }
+            { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to Spotify API to get user's top artists this month.", "Step 2: For each top artist, query concert databases (Songkick, Bandsintown).", "Step 3: Filter for concerts in Warsaw with upcoming dates.", "Step 4: Use Calendar API to add confirmed events.", "Step 5: Verify all additions and provide summary."] },
+            { delay: 1000, message: "3. Executing: Calling Spotify API...", details: "Fetching user's top 10 most-played artists for November 2024..." },
+            { delay: 800, message: "4. Reflecting on music data:", details: "Successfully retrieved: Arctic Monkeys, Tame Impala, The Strokes, Radiohead, and 6 others. Proceeding to concert search." },
+            { delay: 1000, message: "5. Executing: Querying concert databases...", details: "Searching Songkick and Bandsintown APIs for Warsaw concerts by these artists..." },
+            { delay: 900, message: "6. Reflecting on concert results:", details: "Found 3 matching concerts: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja)." },
+            { delay: 1000, message: "7. Executing: Adding to calendar...", details: "Using Google Calendar API to create events with venue details, ticket links, and reminders..." },
+            { delay: 800, message: "8. Reflecting on calendar sync:", details: "All 3 events successfully added to calendar. Events include: address, start time, ticket purchase links." },
+            { delay: 1200, message: "9. Generating final response:", details: "\"✅ Task complete! Found 3 concerts by your top artists in Warsaw: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja). All events have been added to your calendar with venue info and ticket links. You'll receive reminders 1 week and 1 day before each concert.\"" }
         ];
 
         function simulateWorkflow(type, stepContents, container) {
