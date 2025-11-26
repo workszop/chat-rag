@@ -7,165 +7,216 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --color-primary: #18181b;
+            --color-secondary: #71717a;
+            --color-accent-blue: #3b82f6;
+            --color-accent-emerald: #10b981;
+            --color-accent-violet: #8b5cf6;
+            --color-bg: #ffffff;
+            --color-bg-secondary: #fafafa;
+            --color-border: #e4e4e7;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; 
+            background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
+            color: var(--color-primary);
+            line-height: 1.6;
         }
-        .workflow-box {
-            fill: white;
-            stroke: #d1d5db; 
-            stroke-width: 1.5px;
-            rx: 8px;
-            ry: 8px;
-        }
-        .workflow-text {
-            font-size: 13px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            fill: #374151; 
-            font-weight: 500;
-        }
-        .diagram-arrow {
-            stroke: #6b7280; 
-            stroke-width: 1.5px;
-        }
-        .diagram-arrow-head {
-            fill: #6b7280; 
-        }
-        .agent-container-bg {
-            fill: rgba(167, 139, 250, 0.1); 
-            stroke: #a78bfa; 
-            stroke-width: 1.5px;
-            stroke-dasharray: 4,4;
-            rx: 10px;
-            ry: 10px;
-        }
-        .agent-section-text-label {
-            font-size: 14px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            font-weight: 600;
-            fill: #6d28d9; 
-        }
-        .agent-badge-rect {
-            fill: #a78bfa; 
-            rx: 6px;
-            ry: 6px;
-        }
-        .agent-badge-text-label {
-            fill: white;
-            font-size: 11px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            font-weight: 500;
-        }
-        .result-badge-rect {
-            fill: #ef4444; 
-            rx: 15px;
-            ry: 15px;
-        }
-        .result-badge-text-label {
-            fill: white;
-            font-size: 11px;
-            text-anchor: middle;
-            dominant-baseline: middle;
-            font-weight: 500;
-        }
+
         .step {
             display: none;
             opacity: 0;
             transition: opacity 0.5s ease-in-out;
         }
+
         .step.active {
             display: block;
             opacity: 1;
         }
+
         .output-panel-content::-webkit-scrollbar {
-            width: 6px;
+            width: 4px;
         }
+
         .output-panel-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+            background: transparent;
         }
+
         .output-panel-content::-webkit-scrollbar-thumb {
-            background: #cbd5e1; 
+            background: #d4d4d8;
             border-radius: 10px;
         }
+
         .output-panel-content::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8; 
+            background: #a1a1aa;
+        }
+
+        .workflow-card {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .workflow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
 <body class="text-gray-800">
     <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        <header class="text-center mb-10">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">Understanding AI Workflow Approaches</h1>
-            <p class="text-gray-600 mt-3">Compare Chat, RAG, and Agentic AI approaches</p>
+        <header class="text-center mb-16 pt-8">
+            <div class="inline-flex items-center gap-2 mb-4">
+                <span class="badge bg-zinc-100 text-zinc-700">AI Workflows</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
+                Understanding AI Approaches
+            </h1>
+            <p class="text-lg text-zinc-600 max-w-2xl mx-auto">
+                Compare how Chat, RAG, and Agentic AI workflows process complex tasks
+            </p>
         </header>
 
-        <div class="grid md:grid-cols-3 gap-6 mb-12">
-            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
-                <div class="workflow-header bg-blue-500 text-white p-5">
-                    <h2 class="text-xl font-semibold">AI Workflow (Non-Agentic)</h2>
+        <div class="grid md:grid-cols-3 gap-8 mb-20">
+            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
+                <div class="workflow-header p-6 border-b border-zinc-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-zinc-900">Chat AI</h2>
+                    </div>
+                    <p class="text-sm text-zinc-500">Non-Agentic Workflow</p>
                 </div>
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
-                        <div class="diagram-container">
+                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
                             <img src="chat.png" alt="AI Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
-                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500">
-                            <p class="text-sm text-gray-700 mb-3">This approach uses AI to directly process user queries in a single pass. The AI model analyzes the query and generates a response without breaking down the process into distinct steps.</p>
-                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                <li>Limited to knowledge in training data</li>
-                                <li>Single processing step (no external tools)</li>
-                                <li>Can produce generic responses</li>
-                                <li>No self-correction based on intermediate results</li>
+                        <div class="explanation">
+                            <p class="text-sm text-zinc-600 mb-4">Direct AI processing in a single pass without task decomposition.</p>
+                            <ul class="space-y-2 text-sm text-zinc-600">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Limited to training data knowledge</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Single processing step</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>No external tools access</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>No self-correction capability</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
-                <div class="workflow-header bg-emerald-500 text-white p-5">
-                    <h2 class="text-xl font-semibold">RAG Workflow</h2>
+            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
+                <div class="workflow-header p-6 border-b border-zinc-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-zinc-900">RAG AI</h2>
+                    </div>
+                    <p class="text-sm text-zinc-500">Retrieval-Augmented Generation</p>
                 </div>
                 <div class="workflow-body p-6 flex-grow">
                     <div class="flex flex-col gap-6">
-                        <div class="diagram-container">
+                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
                             <img src="rag.png" alt="RAG Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
-                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-emerald-500">
-                            <p class="text-sm text-gray-700 mb-3">RAG combines AI with information retrieval to provide accurate, contextually-grounded responses:</p>
-                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                <li><strong>Retrieval step:</strong> Searches knowledge base for relevant documents.</li>
-                                <li><strong>Context augmentation:</strong> Adds retrieved information to the query.</li>
-                                <li><strong>Grounded generation:</strong> LLM generates response using actual data.</li>
-                                <li><strong>Reduced hallucinations:</strong> Answers based on verified sources.</li>
-                                <li><strong>Up-to-date information:</strong> Knowledge base can be updated independently.</li>
+                        <div class="explanation">
+                            <p class="text-sm text-zinc-600 mb-4">Combines AI with information retrieval for contextually-grounded responses.</p>
+                            <ul class="space-y-2 text-sm text-zinc-600">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Searches knowledge base for relevant docs</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Augments query with retrieved context</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Generates grounded responses</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Reduced hallucinations with sources</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Updatable knowledge base</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="workflow-card bg-white rounded-xl shadow-lg overflow-hidden flex flex-col">
-                <div class="workflow-header bg-violet-500 text-white p-5">
-                    <h2 class="text-xl font-semibold">Agentic Workflow</h2>
+            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
+                <div class="workflow-header p-6 border-b border-zinc-100">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-zinc-900">Agentic AI</h2>
+                    </div>
+                    <p class="text-sm text-zinc-500">Autonomous Multi-Step Workflow</p>
                 </div>
                 <div class="workflow-body p-6 flex-grow">
                      <div class="flex flex-col gap-6">
-                        <div class="diagram-container">
+                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
                             <img src="agent.png" alt="Agentic Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
-                        <div class="explanation bg-gray-50 p-4 rounded-lg border-l-4 border-violet-500">
-                            <p class="text-sm text-gray-700 mb-3">The agentic workflow empowers AI to act more autonomously through a multi-step, iterative process:</p>
-                            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                <li><strong>Planning phase:</strong> Strategically breaks down the query.</li>
-                                <li><strong>Tool usage:</strong> Accesses external data and APIs.</li>
-                                <li><strong>Reflection capability:</strong> Evaluates intermediate results.</li>
-                                <li><strong>Iterative improvement:</strong> Loops back if needed.</li>
-                                <li><strong>Context-aware responses:</strong> Provides personalized answers.</li>
+                        <div class="explanation">
+                            <p class="text-sm text-zinc-600 mb-4">Autonomous AI that plans, executes, and iterates through complex tasks.</p>
+                            <ul class="space-y-2 text-sm text-zinc-600">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Strategic planning and task breakdown</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>External tool and API access</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Evaluates intermediate results</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Iterative self-improvement loops</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-zinc-400 mt-0.5">•</span>
+                                    <span>Context-aware, personalized results</span>
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -173,40 +224,57 @@
             </div>
         </div>
 
-        <div class="interactive-area bg-white p-6 md:p-8 rounded-xl shadow-lg">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-2">Interactive Demo</h2>
-            <p class="text-gray-600 mb-6">Enter a query to see a simplified simulation of how each workflow might process it.</p>
+        <div class="interactive-area bg-white border border-zinc-200 p-8 md:p-10 rounded-2xl">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-zinc-900 mb-2">Interactive Demo</h2>
+                <p class="text-zinc-600">See how each workflow processes a complex task in real-time</p>
+            </div>
 
-            <div class="input-section flex flex-col sm:flex-row gap-3 mb-8">
-                <input type="text" id="query-input" class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.">
-                <button id="process-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-150 shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
-                    Process Query
+            <div class="input-section flex flex-col sm:flex-row gap-3 mb-10">
+                <input type="text" id="query-input" class="flex-grow px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.">
+                <button id="process-btn" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 whitespace-nowrap">
+                    Run Demo
                 </button>
             </div>
 
             <div class="output-section grid md:grid-cols-3 gap-6">
-                <div class="output-panel ai-output-panel border border-blue-300 rounded-lg">
-                    <div class="output-title bg-blue-100 text-blue-700 font-semibold p-4 rounded-t-lg">AI Workflow Output</div>
-                    <div id="ai-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
+                    <div class="output-title border-b border-zinc-200 px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span class="text-sm font-medium text-zinc-900">Chat AI</span>
+                        </div>
+                    </div>
+                    <div id="ai-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
                     </div>
                 </div>
 
-                <div class="output-panel rag-output-panel border border-emerald-300 rounded-lg">
-                    <div class="output-title bg-emerald-100 text-emerald-700 font-semibold p-4 rounded-t-lg">RAG Workflow Output</div>
-                    <div id="rag-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
+                    <div class="output-title border-b border-zinc-200 px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                            <span class="text-sm font-medium text-zinc-900">RAG AI</span>
+                        </div>
+                    </div>
+                    <div id="rag-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
                     </div>
                 </div>
 
-                <div class="output-panel agentic-output-panel border border-violet-300 rounded-lg">
-                    <div class="output-title bg-violet-100 text-violet-700 font-semibold p-4 rounded-t-lg">Agentic Workflow Output</div>
-                    <div id="agentic-steps" class="p-4 space-y-3 output-panel-content h-72 overflow-y-auto">
+                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
+                    <div class="output-title border-b border-zinc-200 px-4 py-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full bg-violet-500"></div>
+                            <span class="text-sm font-medium text-zinc-900">Agentic AI</span>
+                        </div>
+                    </div>
+                    <div id="agentic-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
                     </div>
                 </div>
             </div>
         </div>
 
-        <footer class="text-center mt-12 py-6 border-t border-gray-300">
-            <p class="text-sm text-gray-500">&copy; 2024 AI Workflow Explorer. All rights reserved.</p>
+        <footer class="text-center mt-20 pt-12 pb-8 border-t border-zinc-200">
+            <p class="text-sm text-zinc-500">Built to demonstrate AI workflow approaches</p>
         </footer>
     </div>
 
@@ -252,20 +320,20 @@
             stepContents.forEach((stepContent, index) => {
                 setTimeout(() => {
                     const stepDiv = document.createElement('div');
-                    stepDiv.className = `step step-${index + 1} p-3 rounded-md transition-all duration-500 ease-in-out transform opacity-0 translate-y-2`;
-                    const bgColor = type === 'ai' ? 'bg-blue-50' : type === 'rag' ? 'bg-emerald-50' : 'bg-violet-50';
-                    stepDiv.classList.add(bgColor);
+                    stepDiv.className = `step step-${index + 1} p-4 rounded-lg transition-all duration-500 ease-in-out transform opacity-0 translate-y-2 bg-white border`;
+                    const borderColor = type === 'ai' ? 'border-blue-100' : type === 'rag' ? 'border-emerald-100' : 'border-violet-100';
+                    stepDiv.classList.add(borderColor);
                     
-                    let htmlContent = `<p class="font-medium text-sm">${stepContent.message}</p>`;
-                    
+                    let htmlContent = `<p class="font-medium text-sm text-zinc-900">${stepContent.message}</p>`;
+
                     if (stepContent.queryUpdate) {
-                         htmlContent += `<p class="text-xs text-gray-500 mt-1"><em>Query: "${userQuery}"</em></p>`;
+                         htmlContent += `<p class="text-xs text-zinc-500 mt-2"><em>Query: "${userQuery}"</em></p>`;
                     }
                     if (stepContent.details) {
-                        htmlContent += `<p class="text-xs text-gray-600 mt-1">${stepContent.details}</p>`;
+                        htmlContent += `<p class="text-xs text-zinc-600 mt-2 leading-relaxed">${stepContent.details}</p>`;
                     }
                     if (stepContent.detailsList) {
-                        htmlContent += `<ol class="list-decimal list-inside text-xs text-gray-600 mt-1 space-y-0.5">`;
+                        htmlContent += `<ol class="list-decimal list-inside text-xs text-zinc-600 mt-2 space-y-1 leading-relaxed">`;
                         stepContent.detailsList.forEach(item => {
                             htmlContent += `<li>${item}</li>`;
                         });
@@ -315,9 +383,9 @@
         });
 
         window.addEventListener('load', function() {
-            aiStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the AI workflow.</p>';
-            ragStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the RAG workflow.</p>';
-            agenticStepsContainer.innerHTML = '<p class="text-sm text-gray-500 p-3">Click "Process Query" to see the Agentic workflow.</p>';
+            aiStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
+            ragStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
+            agenticStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
         });
     </script>
 </body>
