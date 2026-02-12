@@ -107,11 +107,11 @@
                             <img src="chat.png" alt="AI Workflow Diagram" class="w-full h-auto rounded-lg" />
                         </div>
                         <div class="explanation">
-                            <p class="text-sm text-zinc-600 mb-4">Direct AI processing in a single pass without task decomposition.</p>
+                            <p class="text-sm text-zinc-600 mb-4">Direct AI processing with web search in a single pass without task decomposition.</p>
                             <ul class="space-y-2 text-sm text-zinc-600">
                                 <li class="flex items-start gap-2">
                                     <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Limited to training data knowledge</span>
+                                    <span>Can search the web for information</span>
                                 </li>
                                 <li class="flex items-start gap-2">
                                     <span class="text-zinc-400 mt-0.5">•</span>
@@ -119,7 +119,7 @@
                                 </li>
                                 <li class="flex items-start gap-2">
                                     <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>No external tools access</span>
+                                    <span>No personalized data access</span>
                                 </li>
                                 <li class="flex items-start gap-2">
                                     <span class="text-zinc-400 mt-0.5">•</span>
@@ -305,8 +305,9 @@
                 query: "Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.",
                 ai: [
                     { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
-                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 35, outputTokens: 0 },
-                    { delay: 1500, message: "3. Generating response:", details: "To find your most listened artists, you can check your music streaming service's statistics page (like Spotify Wrapped or similar features). For concerts, visit ticketing websites like Songkick or Bandsintown. To add dates to your calendar, you'll need to manually enter them or use calendar app integrations if available.", inputTokens: 35, outputTokens: 68 }
+                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'concerts Warsaw 2024', 'Spotify top artists', 'calendar integration'", inputTokens: 35, outputTokens: 15 },
+                    { delay: 1200, message: "3. Processing search results...", details: "Found general information about concert venues in Warsaw and calendar apps, but no personalized data.", inputTokens: 50, outputTokens: 22 },
+                    { delay: 1500, message: "4. Generating response:", details: "Based on web search: Popular concert venues in Warsaw include Torwar Hall and Progresja. However, I cannot access your personal Spotify listening data or automatically check which specific artists you listen to. You'll need to: 1) Check your Spotify Wrapped or stats page manually, 2) Search for those specific artists on Songkick or Bandsintown, 3) Manually add events to your calendar. Web search provides general info but can't complete this personalized, multi-step task automatically.", inputTokens: 72, outputTokens: 95 }
                 ],
                 rag: [
                     { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
@@ -332,8 +333,9 @@
                 query: "Find the best restaurants near me that are open now, check their ratings and reviews, and make a reservation for 2 people at 7 PM tonight.",
                 ai: [
                     { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
-                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 32, outputTokens: 0 },
-                    { delay: 1500, message: "3. Generating response:", details: "I cannot access your real-time location or check which restaurants are currently open. To find restaurants near you, please use apps like Google Maps, Yelp, or OpenTable. These services can show nearby restaurants, their current status, ratings, and allow you to make reservations. Most restaurants accept reservations through their websites or by calling directly.", inputTokens: 32, outputTokens: 72 }
+                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'best restaurants near me', 'restaurant ratings', 'open now'", inputTokens: 32, outputTokens: 14 },
+                    { delay: 1200, message: "3. Processing search results...", details: "Found general restaurant review sites and reservation platforms, but cannot determine user's location or real-time availability.", inputTokens: 46, outputTokens: 24 },
+                    { delay: 1500, message: "4. Generating response:", details: "Web search shows popular restaurant review sites like Yelp and OpenTable exist, but I cannot: 1) Access your current location, 2) Check which restaurants are actually open right now, 3) See real-time availability for 7 PM tonight, 4) Make a reservation on your behalf. You'll need to manually visit Google Maps or OpenTable, search based on your location, filter for availability, and complete the reservation yourself.", inputTokens: 70, outputTokens: 88 }
                 ],
                 rag: [
                     { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
@@ -359,8 +361,9 @@
                 query: "Analyze my spending patterns from last month, identify areas where I'm overspending, and create a budget plan with specific recommendations.",
                 ai: [
                     { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 1500, message: "3. Generating response:", details: "I don't have access to your financial data or spending history. To analyze your spending patterns, you'll need to: 1) Export transactions from your bank or credit card, 2) Use budgeting apps like Mint, YNAB, or Personal Capital, 3) Review categories manually in spreadsheets. Common overspending areas include dining out, subscriptions, and impulse purchases. A typical budget follows the 50/30/20 rule: 50% needs, 30% wants, 20% savings.", inputTokens: 28, outputTokens: 98 }
+                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'budgeting best practices', '50/30/20 rule', 'common overspending areas'", inputTokens: 28, outputTokens: 16 },
+                    { delay: 1200, message: "3. Processing search results...", details: "Found generic budgeting advice and framework recommendations, but no access to user's personal financial data.", inputTokens: 44, outputTokens: 22 },
+                    { delay: 1500, message: "4. Generating response:", details: "Based on web search of budgeting best practices: The 50/30/20 rule suggests 50% needs, 30% wants, 20% savings. Common overspending areas include dining out, subscriptions, and impulse purchases. However, I cannot: 1) Access your actual bank transactions, 2) Analyze your specific spending patterns, 3) Identify YOUR overspending categories, 4) Create a personalized budget. You'll need to manually export your transactions and use budgeting software like Mint or YNAB for personalized analysis.", inputTokens: 66, outputTokens: 110 }
                 ],
                 rag: [
                     { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
