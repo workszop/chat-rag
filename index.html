@@ -230,11 +230,18 @@
                 <p class="text-zinc-600">See how each workflow processes a complex task in real-time</p>
             </div>
 
-            <div class="input-section flex flex-col sm:flex-row gap-3 mb-10">
-                <input type="text" id="query-input" class="flex-grow px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.">
-                <button id="process-btn" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 whitespace-nowrap">
-                    Run Demo
-                </button>
+            <div class="input-section space-y-4 mb-10">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <select id="example-select" class="px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm bg-white">
+                        <option value="0">Example 1: Music & Concerts</option>
+                        <option value="1">Example 2: Restaurant Reservation</option>
+                        <option value="2">Example 3: Budget Analysis</option>
+                    </select>
+                    <button id="process-btn" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 whitespace-nowrap">
+                        Run Demo
+                    </button>
+                </div>
+                <input type="text" id="query-input" class="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar." readonly>
             </div>
 
             <div class="output-section grid md:grid-cols-3 gap-6">
@@ -281,40 +288,113 @@
     <script>
         const queryInput = document.getElementById('query-input');
         const processBtn = document.getElementById('process-btn');
+        const exampleSelect = document.getElementById('example-select');
         const aiStepsContainer = document.getElementById('ai-steps');
         const ragStepsContainer = document.getElementById('rag-steps');
         const agenticStepsContainer = document.getElementById('agentic-steps');
 
-        const aiStepContents = [
-            { delay: 500, queryUpdate: true, message: "1. Receiving query..." },
-            { delay: 1000, message: "2. Processing with AI model..." },
-            { delay: 1500, message: "3. Generating response:", details: "To find your most listened artists, you can check your music streaming service's statistics page (like Spotify Wrapped or similar features). For concerts, visit ticketing websites like Songkick or Bandsintown. To add dates to your calendar, you'll need to manually enter them or use calendar app integrations if available." }
+        // Token pricing (per 1K tokens) - simulating GPT-4 pricing
+        const PRICING = {
+            input: 0.03,   // $0.03 per 1K input tokens
+            output: 0.06   // $0.06 per 1K output tokens
+        };
+
+        // Multiple example scenarios
+        const examples = [
+            {
+                query: "Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.",
+                ai: [
+                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
+                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 35, outputTokens: 0 },
+                    { delay: 1500, message: "3. Generating response:", details: "To find your most listened artists, you can check your music streaming service's statistics page (like Spotify Wrapped or similar features). For concerts, visit ticketing websites like Songkick or Bandsintown. To add dates to your calendar, you'll need to manually enter them or use calendar app integrations if available.", inputTokens: 35, outputTokens: 68 }
+                ],
+                rag: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
+                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'concert listings', 'Warsaw events', 'artist schedules'...", inputTokens: 35, outputTokens: 22 },
+                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules", "Doc #89: Guide to concert ticket booking and calendar integration"], inputTokens: 0, outputTokens: 35 },
+                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved concert data and calendar integration info to enhance LLM prompt with factual information.", inputTokens: 420, outputTokens: 28 },
+                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide specific concert information...", inputTokens: 420, outputTokens: 0 },
+                    { delay: 1200, message: "6. Final response:", details: "\"Based on our concert database (updated Nov 2024), several popular artists have upcoming shows in Warsaw. However, I cannot access your personal music listening data to determine your specific favorite artists. To get your listening stats, you'll need to connect to your streaming service API. Common venues in Warsaw include: Torwar Hall, Progresja, and COS Torwar. For calendar integration, I can provide iCal format links once specific concerts are identified.\"", inputTokens: 420, outputTokens: 95 }
+                ],
+                agentic: [
+                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
+                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to Spotify API to get user's top artists this month.", "Step 2: For each top artist, query concert databases (Songkick, Bandsintown).", "Step 3: Filter for concerts in Warsaw with upcoming dates.", "Step 4: Use Calendar API to add confirmed events.", "Step 5: Verify all additions and provide summary."], inputTokens: 35, outputTokens: 85 },
+                    { delay: 1000, message: "3. Executing: Calling Spotify API...", details: "Fetching user's top 10 most-played artists for November 2024...", inputTokens: 120, outputTokens: 18 },
+                    { delay: 800, message: "4. Reflecting on music data:", details: "Successfully retrieved: Arctic Monkeys, Tame Impala, The Strokes, Radiohead, and 6 others. Proceeding to concert search.", inputTokens: 138, outputTokens: 32 },
+                    { delay: 1000, message: "5. Executing: Querying concert databases...", details: "Searching Songkick and Bandsintown APIs for Warsaw concerts by these artists...", inputTokens: 170, outputTokens: 20 },
+                    { delay: 900, message: "6. Reflecting on concert results:", details: "Found 3 matching concerts: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja).", inputTokens: 190, outputTokens: 42 },
+                    { delay: 1000, message: "7. Executing: Adding to calendar...", details: "Using Google Calendar API to create events with venue details, ticket links, and reminders...", inputTokens: 232, outputTokens: 24 },
+                    { delay: 800, message: "8. Reflecting on calendar sync:", details: "All 3 events successfully added to calendar. Events include: address, start time, ticket purchase links.", inputTokens: 256, outputTokens: 28 },
+                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Task complete! Found 3 concerts by your top artists in Warsaw: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja). All events have been added to your calendar with venue info and ticket links. You'll receive reminders 1 week and 1 day before each concert.\"", inputTokens: 284, outputTokens: 82 }
+                ]
+            },
+            {
+                query: "Find the best restaurants near me that are open now, check their ratings and reviews, and make a reservation for 2 people at 7 PM tonight.",
+                ai: [
+                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
+                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 32, outputTokens: 0 },
+                    { delay: 1500, message: "3. Generating response:", details: "I cannot access your real-time location or check which restaurants are currently open. To find restaurants near you, please use apps like Google Maps, Yelp, or OpenTable. These services can show nearby restaurants, their current status, ratings, and allow you to make reservations. Most restaurants accept reservations through their websites or by calling directly.", inputTokens: 32, outputTokens: 72 }
+                ],
+                rag: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
+                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'restaurant reviews', 'reservation systems', 'dining guides'...", inputTokens: 32, outputTokens: 20 },
+                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #412: Top-rated restaurants by cuisine and location", "Doc #287: Restaurant reservation best practices", "Doc #156: User review aggregation (2024)"], inputTokens: 0, outputTokens: 32 },
+                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding restaurant database info and reservation protocols to enhance response quality.", inputTokens: 385, outputTokens: 22 },
+                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved restaurant data to provide recommendations...", inputTokens: 385, outputTokens: 0 },
+                    { delay: 1200, message: "6. Final response:", details: "\"Based on our restaurant database, here are highly-rated options (Note: I cannot verify real-time availability or your exact location): For Italian: Trattoria Luna (4.8★, typically open until 10 PM), For Asian: Sakura Fusion (4.7★, open until 11 PM), For American: The Grill House (4.6★, open until 10 PM). To make a reservation, I recommend using OpenTable or calling directly. Most restaurants can accommodate a party of 2 with a few hours notice.\"", inputTokens: 385, outputTokens: 115 }
+                ],
+                agentic: [
+                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
+                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Get user's current location via Geolocation API.", "Step 2: Query restaurant APIs (Google Places, Yelp) for nearby options.", "Step 3: Filter for restaurants open now with availability.", "Step 4: Rank by ratings and review sentiment.", "Step 5: Make reservation via OpenTable/Resy API.", "Step 6: Send confirmation to user."], inputTokens: 32, outputTokens: 95 },
+                    { delay: 1000, message: "3. Executing: Getting location...", details: "Accessing Geolocation API... Location: 40.7580° N, 73.9855° W (Midtown Manhattan, NYC)", inputTokens: 127, outputTokens: 28 },
+                    { delay: 800, message: "4. Reflecting on location data:", details: "Location confirmed. Proceeding to search restaurants within 1 mile radius.", inputTokens: 155, outputTokens: 20 },
+                    { delay: 1000, message: "5. Executing: Querying restaurant APIs...", details: "Found 47 restaurants currently open. Filtering for 7 PM availability...", inputTokens: 175, outputTokens: 22 },
+                    { delay: 900, message: "6. Reflecting on restaurant results:", details: "12 restaurants available with 4.5+ ratings. Top 3: Le Bernardin (4.9★, seafood), Carbone (4.8★, Italian), Momofuku Ko (4.7★, Asian fusion).", inputTokens: 197, outputTokens: 52 },
+                    { delay: 1000, message: "7. Executing: Making reservation...", details: "User preference: high-rated, diverse options. Attempting reservation at Carbone via Resy API for 2 guests at 7:00 PM...", inputTokens: 249, outputTokens: 35 },
+                    { delay: 800, message: "8. Reflecting on reservation status:", details: "✅ Reservation confirmed! Carbone, 181 Thompson St, NYC. Party of 2 at 7:00 PM tonight. Confirmation #RC-8472-2024.", inputTokens: 284, outputTokens: 42 },
+                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Reservation complete! You're booked at Carbone (4.8★, Italian) tonight at 7:00 PM for 2 people. Address: 181 Thompson St, New York, NY. Confirmation #RC-8472-2024. The restaurant is known for its classic Italian-American cuisine. A confirmation email has been sent. Enjoy your dinner!\"", inputTokens: 326, outputTokens: 78 }
+                ]
+            },
+            {
+                query: "Analyze my spending patterns from last month, identify areas where I'm overspending, and create a budget plan with specific recommendations.",
+                ai: [
+                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 1000, message: "2. Processing with AI model...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 1500, message: "3. Generating response:", details: "I don't have access to your financial data or spending history. To analyze your spending patterns, you'll need to: 1) Export transactions from your bank or credit card, 2) Use budgeting apps like Mint, YNAB, or Personal Capital, 3) Review categories manually in spreadsheets. Common overspending areas include dining out, subscriptions, and impulse purchases. A typical budget follows the 50/30/20 rule: 50% needs, 30% wants, 20% savings.", inputTokens: 28, outputTokens: 98 }
+                ],
+                rag: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'budgeting strategies', 'spending analysis', 'financial planning'...", inputTokens: 28, outputTokens: 20 },
+                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #823: Personal budgeting frameworks and methods", "Doc #567: Common spending categories and averages", "Doc #234: Financial planning best practices (2024)"], inputTokens: 0, outputTokens: 35 },
+                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding budgeting frameworks, spending benchmarks, and planning templates to enhance recommendations.", inputTokens: 445, outputTokens: 22 },
+                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with financial planning knowledge to provide budget recommendations...", inputTokens: 445, outputTokens: 0 },
+                    { delay: 1200, message: "6. Final response:", details: "\"While I cannot access your actual spending data, I can provide a framework: 1) Categorize expenses (housing, food, transport, entertainment, etc.), 2) Compare to benchmarks (housing should be <30% of income, food ~10-15%), 3) Use the 50/30/20 rule as a baseline, 4) Track discretionary spending carefully. Common overspending areas: dining out (aim for <5% of income), subscriptions (audit and cancel unused), impulse purchases (implement 24-hour rule). I recommend using budgeting software that connects to your accounts for real-time tracking.\"", inputTokens: 445, outputTokens: 128 }
+                ],
+                agentic: [
+                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to user's bank/credit card via Plaid API.", "Step 2: Pull all transactions from last month.", "Step 3: Categorize and analyze spending patterns.", "Step 4: Compare to income and identify overspending categories.", "Step 5: Generate personalized budget recommendations.", "Step 6: Create actionable budget plan with specific limits."], inputTokens: 28, outputTokens: 92 },
+                    { delay: 1000, message: "3. Executing: Connecting to financial accounts...", details: "Authenticating via Plaid API... Connected to Chase Checking, Amex Credit Card. Pulling transactions...", inputTokens: 120, outputTokens: 28 },
+                    { delay: 800, message: "4. Reflecting on transaction data:", details: "Retrieved 87 transactions from last month. Total spending: $4,235. Monthly income: $6,500. Savings rate: 35%. Proceeding to categorization.", inputTokens: 148, outputTokens: 42 },
+                    { delay: 1000, message: "5. Executing: Analyzing spending patterns...", details: "Categorized expenses: Dining $892 (21%), Groceries $485 (11%), Transport $320 (8%), Entertainment $650 (15%), Shopping $720 (17%), Utilities $380 (9%), Other $788 (19%).", inputTokens: 190, outputTokens: 68 },
+                    { delay: 900, message: "6. Reflecting on spending analysis:", details: "⚠️ Overspending identified: Dining out is 3x recommended amount (should be <7% of income). Entertainment also high at 15%. Shopping shows impulse pattern (12 small transactions under $100).", inputTokens: 258, outputTokens: 58 },
+                    { delay: 1000, message: "7. Executing: Generating budget recommendations...", details: "Creating personalized plan based on income ($6,500), current spending patterns, and financial goals...", inputTokens: 316, outputTokens: 25 },
+                    { delay: 800, message: "8. Reflecting on budget plan:", details: "Recommended budget: Dining $455 (7%), Groceries $520 (8%), Transport $325 (5%), Entertainment $390 (6%), Shopping $390 (6%), Utilities $380 (6%), Savings $1,625 (25%), Other $2,415 (37%). This reduces discretionary spending by $1,050/month.", inputTokens: 341, outputTokens: 82 },
+                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Analysis complete! Last month you spent $4,235 with overspending in: 🍽️ Dining ($892 - reduce to $455), 🎬 Entertainment ($650 - reduce to $390), 🛍️ Shopping ($720 - reduce to $390). Your personalized budget plan can save $1,050/month, increasing savings from $2,265 to $3,315 (51% savings rate). Key actions: 1) Meal prep 3x/week, 2) Cancel 2 unused subscriptions, 3) Implement 48-hour rule for purchases >$50. Track progress with Mint or YNAB.\"", inputTokens: 423, outputTokens: 145 }
+                ]
+            }
         ];
 
-        const ragStepContents = [
-            { delay: 400, queryUpdate: true, message: "1. Receiving query..." },
-            { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'concert listings', 'Warsaw events', 'artist schedules'..." },
-            { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules", "Doc #89: Guide to concert ticket booking and calendar integration"] },
-            { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved concert data and calendar integration info to enhance LLM prompt with factual information." },
-            { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide specific concert information..." },
-            { delay: 1200, message: "6. Final response:", details: "\"Based on our concert database (updated Nov 2024), several popular artists have upcoming shows in Warsaw. However, I cannot access your personal music listening data to determine your specific favorite artists. To get your listening stats, you'll need to connect to your streaming service API. Common venues in Warsaw include: Torwar Hall, Progresja, and COS Torwar. For calendar integration, I can provide iCal format links once specific concerts are identified.\"" }
-        ];
-
-        const agenticStepContents = [
-            { delay: 300, queryUpdate: true, message: "1. Receiving query..." },
-            { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to Spotify API to get user's top artists this month.", "Step 2: For each top artist, query concert databases (Songkick, Bandsintown).", "Step 3: Filter for concerts in Warsaw with upcoming dates.", "Step 4: Use Calendar API to add confirmed events.", "Step 5: Verify all additions and provide summary."] },
-            { delay: 1000, message: "3. Executing: Calling Spotify API...", details: "Fetching user's top 10 most-played artists for November 2024..." },
-            { delay: 800, message: "4. Reflecting on music data:", details: "Successfully retrieved: Arctic Monkeys, Tame Impala, The Strokes, Radiohead, and 6 others. Proceeding to concert search." },
-            { delay: 1000, message: "5. Executing: Querying concert databases...", details: "Searching Songkick and Bandsintown APIs for Warsaw concerts by these artists..." },
-            { delay: 900, message: "6. Reflecting on concert results:", details: "Found 3 matching concerts: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja)." },
-            { delay: 1000, message: "7. Executing: Adding to calendar...", details: "Using Google Calendar API to create events with venue details, ticket links, and reminders..." },
-            { delay: 800, message: "8. Reflecting on calendar sync:", details: "All 3 events successfully added to calendar. Events include: address, start time, ticket purchase links." },
-            { delay: 1200, message: "9. Generating final response:", details: "\"✅ Task complete! Found 3 concerts by your top artists in Warsaw: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja). All events have been added to your calendar with venue info and ticket links. You'll receive reminders 1 week and 1 day before each concert.\"" }
-        ];
+        function calculateCost(inputTokens, outputTokens) {
+            const inputCost = (inputTokens / 1000) * PRICING.input;
+            const outputCost = (outputTokens / 1000) * PRICING.output;
+            return (inputCost + outputCost).toFixed(4);
+        }
 
         function simulateWorkflow(type, stepContents, container) {
             container.innerHTML = '';
             let cumulativeDelay = 0;
+            let totalInputTokens = 0;
+            let totalOutputTokens = 0;
             const userQuery = queryInput.value || "No query entered.";
 
             stepContents.forEach((stepContent, index) => {
@@ -323,7 +403,7 @@
                     stepDiv.className = `step step-${index + 1} p-4 rounded-lg transition-all duration-500 ease-in-out transform opacity-0 translate-y-2 bg-white border`;
                     const borderColor = type === 'ai' ? 'border-blue-100' : type === 'rag' ? 'border-emerald-100' : 'border-violet-100';
                     stepDiv.classList.add(borderColor);
-                    
+
                     let htmlContent = `<p class="font-medium text-sm text-zinc-900">${stepContent.message}</p>`;
 
                     if (stepContent.queryUpdate) {
@@ -339,7 +419,19 @@
                         });
                         htmlContent += `</ol>`;
                     }
-                    
+
+                    // Add token count if present
+                    if (stepContent.inputTokens !== undefined || stepContent.outputTokens !== undefined) {
+                        const inTokens = stepContent.inputTokens || 0;
+                        const outTokens = stepContent.outputTokens || 0;
+                        totalInputTokens += inTokens;
+                        totalOutputTokens += outTokens;
+
+                        if (inTokens > 0 || outTokens > 0) {
+                            htmlContent += `<div class="text-xs text-zinc-400 mt-2 font-mono">📊 Tokens: ${inTokens} in / ${outTokens} out</div>`;
+                        }
+                    }
+
                     stepDiv.innerHTML = htmlContent;
                     container.appendChild(stepDiv);
 
@@ -348,12 +440,63 @@
                         stepDiv.classList.remove('opacity-0', 'translate-y-2');
                         stepDiv.classList.add('opacity-100', 'translate-y-0');
                         container.scrollTop = container.scrollHeight;
-                    }, 50); 
+                    }, 50);
 
                 }, cumulativeDelay);
                 cumulativeDelay += stepContent.delay;
             });
+
+            // Add summary step with total tokens and cost
+            setTimeout(() => {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = `step summary-step p-4 rounded-lg transition-all duration-500 ease-in-out transform opacity-0 translate-y-2 bg-gradient-to-br border-2`;
+                const borderColor = type === 'ai' ? 'border-blue-200 from-blue-50 to-white' :
+                                  type === 'rag' ? 'border-emerald-200 from-emerald-50 to-white' :
+                                  'border-violet-200 from-violet-50 to-white';
+                summaryDiv.classList.add(...borderColor.split(' '));
+
+                const totalTokens = totalInputTokens + totalOutputTokens;
+                const totalCost = calculateCost(totalInputTokens, totalOutputTokens);
+
+                summaryDiv.innerHTML = `
+                    <p class="font-bold text-sm text-zinc-900 mb-2">💰 Cost Summary</p>
+                    <div class="space-y-1 text-xs text-zinc-700">
+                        <div class="flex justify-between">
+                            <span>Input tokens:</span>
+                            <span class="font-mono font-medium">${totalInputTokens.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Output tokens:</span>
+                            <span class="font-mono font-medium">${totalOutputTokens.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between font-semibold pt-1 border-t border-zinc-200">
+                            <span>Total tokens:</span>
+                            <span class="font-mono">${totalTokens.toLocaleString()}</span>
+                        </div>
+                        <div class="flex justify-between font-bold pt-2 text-sm border-t border-zinc-300">
+                            <span>Estimated cost:</span>
+                            <span class="font-mono text-green-600">$${totalCost}</span>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(summaryDiv);
+
+                setTimeout(() => {
+                    summaryDiv.classList.add('active');
+                    summaryDiv.classList.remove('opacity-0', 'translate-y-2');
+                    summaryDiv.classList.add('opacity-100', 'translate-y-0');
+                    container.scrollTop = container.scrollHeight;
+                }, 50);
+            }, cumulativeDelay);
         }
+
+        // Update query input when example is changed
+        exampleSelect.addEventListener('change', function() {
+            const selectedIndex = parseInt(exampleSelect.value);
+            const selectedExample = examples[selectedIndex];
+            queryInput.value = selectedExample.query;
+        });
 
         processBtn.addEventListener('click', function() {
             const query = queryInput.value;
@@ -361,25 +504,28 @@
                 queryInput.focus();
                 return;
             }
-            
+
+            const selectedIndex = parseInt(exampleSelect.value);
+            const selectedExample = examples[selectedIndex];
+
             processBtn.disabled = true;
             processBtn.textContent = 'Processing...';
             processBtn.classList.add('opacity-75', 'cursor-not-allowed');
 
-            simulateWorkflow('ai', aiStepContents, aiStepsContainer);
-            simulateWorkflow('rag', ragStepContents, ragStepsContainer);
-            simulateWorkflow('agentic', agenticStepContents, agenticStepsContainer);
+            simulateWorkflow('ai', selectedExample.ai, aiStepsContainer);
+            simulateWorkflow('rag', selectedExample.rag, ragStepsContainer);
+            simulateWorkflow('agentic', selectedExample.agentic, agenticStepsContainer);
 
-            const maxAiDelay = aiStepContents.reduce((sum, step) => sum + step.delay, 0);
-            const maxRagDelay = ragStepContents.reduce((sum, step) => sum + step.delay, 0);
-            const maxAgenticDelay = agenticStepContents.reduce((sum, step) => sum + step.delay, 0);
-            const maxTotalDelay = Math.max(maxAiDelay, maxRagDelay, maxAgenticDelay);
+            const maxAiDelay = selectedExample.ai.reduce((sum, step) => sum + step.delay, 0);
+            const maxRagDelay = selectedExample.rag.reduce((sum, step) => sum + step.delay, 0);
+            const maxAgenticDelay = selectedExample.agentic.reduce((sum, step) => sum + step.delay, 0);
+            const maxTotalDelay = Math.max(maxAiDelay, maxRagDelay, maxAgenticDelay) + 1500; // Add extra time for summary
 
             setTimeout(() => {
                 processBtn.disabled = false;
-                processBtn.textContent = 'Process Query';
+                processBtn.textContent = 'Run Demo';
                 processBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }, maxTotalDelay + 100); 
+            }, maxTotalDelay + 100);
         });
 
         window.addEventListener('load', function() {
