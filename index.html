@@ -399,15 +399,15 @@
             <div class="input-section space-y-4 mb-10">
                 <div class="flex flex-col sm:flex-row gap-3">
                     <select id="example-select" class="px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm bg-white">
-                        <option value="0">Example 1: Music & Concerts</option>
-                        <option value="1">Example 2: Restaurant Reservation</option>
-                        <option value="2">Example 3: Budget Analysis</option>
+                        <option value="0">General Knowledge → Chat is enough</option>
+                        <option value="1">Company Policy → RAG shines</option>
+                        <option value="2">Multi-step Task → needs an Agent</option>
                     </select>
                     <button id="process-btn" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 whitespace-nowrap">
                         Run Demo
                     </button>
                 </div>
-                <input type="text" id="query-input" class="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar." readonly>
+                <input type="text" id="query-input" class="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Explain the difference between TCP and UDP, with a simple analogy." readonly>
             </div>
 
             <div class="output-section grid md:grid-cols-3 gap-6">
@@ -468,20 +468,68 @@
         // Multiple example scenarios
         const examples = [
             {
+                query: "Explain the difference between TCP and UDP, with a simple analogy.",
+                ai: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 22, outputTokens: 0 },
+                    { delay: 600, message: "2. Processing with pre-trained knowledge...", details: "This is a well-known computer science concept. No web search needed — answering from training data.", inputTokens: 22, outputTokens: 8 },
+                    { delay: 800, message: "3. Generating response:", details: "\"TCP (Transmission Control Protocol) is like sending a registered letter — the postal service confirms delivery, resends if lost, and delivers pages in order. UDP (User Datagram Protocol) is like shouting across a room — faster, but no guarantee the other person heard you or caught every word. Use TCP when reliability matters (web pages, file downloads, emails). Use UDP when speed matters more than perfection (live video, online gaming, voice calls — a dropped frame is better than a frozen stream).\"", inputTokens: 22, outputTokens: 92 }
+                ],
+                rag: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 22, outputTokens: 0 },
+                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'TCP', 'UDP', 'network protocols'...", inputTokens: 22, outputTokens: 18 },
+                    { delay: 700, message: "3. Found relevant documents:", detailsList: ["Doc #71: RFC 793 — Transmission Control Protocol specification", "Doc #44: RFC 768 — User Datagram Protocol specification", "Doc #112: Introduction to Internet Protocols (textbook chapter)"], inputTokens: 0, outputTokens: 32 },
+                    { delay: 900, message: "4. Augmenting query with context:", details: "Adding 3 retrieved documents (2,400 tokens) to the prompt. This is standard reference material the model already knows well.", inputTokens: 2422, outputTokens: 18 },
+                    { delay: 1000, message: "5. Generating grounded response:", details: "\"TCP is a connection-oriented protocol that guarantees reliable, ordered delivery (RFC 793). UDP is a connectionless protocol optimized for speed with no delivery guarantee (RFC 768). Analogy: TCP is like a registered letter with tracking — confirmed delivery, correct order. UDP is like shouting across a room — fast, but some words may be lost. Use TCP for reliability (web, email), UDP for speed (video, gaming).\"", inputTokens: 2422, outputTokens: 88 }
+                ],
+                agentic: [
+                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
+                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Search for authoritative sources on TCP vs UDP.", "Step 2: Cross-reference multiple explanations for accuracy.", "Step 3: Craft an analogy and verify it holds up.", "Step 4: Review and refine the final answer."], inputTokens: 1200, outputTokens: 145 },
+                    { delay: 900, message: "3. Executing: Searching technical sources...", details: "Querying Wikipedia API, MDN Web Docs, and RFC database for TCP and UDP specifications...", inputTokens: 1520, outputTokens: 110 },
+                    { delay: 800, message: "4. Reflecting on sources:", details: "All sources agree on the core differences. This is well-established knowledge — extensive research was unnecessary.", inputTokens: 1780, outputTokens: 95 },
+                    { delay: 700, message: "5. Executing: Generating analogy candidates...", details: "Brainstorming analogies: registered mail vs postcard, phone call vs radio broadcast, waiter vs buffet...", inputTokens: 2010, outputTokens: 120 },
+                    { delay: 600, message: "6. Reflecting on analogy quality:", details: "The registered mail analogy is most accurate — it covers reliability, ordering, and confirmation. Proceeding.", inputTokens: 2260, outputTokens: 88 },
+                    { delay: 800, message: "7. Generating final response:", details: "\"TCP is like sending a registered letter — delivery is confirmed, pages arrive in order, and lost pages are resent. UDP is like shouting across a room — faster, but no guarantee every word lands. Use TCP for reliability (web, email, files), UDP for speed (live video, gaming, voice calls).\"", inputTokens: 2480, outputTokens: 95 }
+                ]
+            },
+            {
+                query: "What's our company's remote work policy, and how many vacation days do I get after 3 years?",
+                ai: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 800, message: "2. Performing web search...", details: "Searching for: 'company remote work policy', 'vacation days after 3 years'...", inputTokens: 28, outputTokens: 14 },
+                    { delay: 1000, message: "3. Processing search results...", details: "Found generic articles about typical remote work policies and PTO benchmarks. No access to this company's specific policies.", inputTokens: 42, outputTokens: 22 },
+                    { delay: 1200, message: "4. Generating response:", details: "\"I don't have access to your company's internal policies. Typical remote work policies vary widely — some companies allow 2-3 days/week, others are fully remote. For US companies, 15-20 vacation days after 3 years is common. However, I cannot tell you YOUR company's specific policy. Please check your employee handbook, internal HR portal, or contact your HR department for accurate information.\"", inputTokens: 64, outputTokens: 82 }
+                ],
+                rag: [
+                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
+                    { delay: 700, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'remote work policy', 'vacation days', 'PTO', 'employee benefits'...", inputTokens: 28, outputTokens: 20 },
+                    { delay: 600, message: "3. Found relevant documents:", detailsList: ["Doc #14: Employee Handbook 2024 — Section 3.2: Remote Work Policy", "Doc #14: Employee Handbook 2024 — Section 4.1: Paid Time Off Schedule", "Doc #27: HR FAQ — Common Benefits Questions"], inputTokens: 0, outputTokens: 30 },
+                    { delay: 800, message: "4. Augmenting query with context:", details: "Adding retrieved HR policy documents (1,850 tokens) to provide exact, sourced answers.", inputTokens: 1878, outputTokens: 18 },
+                    { delay: 900, message: "5. Generating grounded response:", details: "\"Per the Employee Handbook (Section 3.2), our remote work policy allows up to 3 days remote per week. Wednesdays and Thursdays are mandatory in-office collaboration days. Managers may approve full-remote weeks up to 4 times per year. Regarding vacation: per Section 4.1, employees with 3+ years of tenure receive 26 vacation days per year (up from 21 days in years 1-2). Days reset on your work anniversary, not the calendar year. [Sources: Employee Handbook 2024, Sections 3.2 and 4.1]\"", inputTokens: 1878, outputTokens: 105 }
+                ],
+                agentic: [
+                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
+                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Search internal knowledge base for HR policies.", "Step 2: Cross-reference with latest policy updates.", "Step 3: Verify vacation tier for 3-year employees.", "Step 4: Check for any recent policy amendments."], inputTokens: 1200, outputTokens: 155 },
+                    { delay: 900, message: "3. Executing: Querying knowledge base...", details: "Searching internal docs for remote work policy and PTO schedule...", inputTokens: 1520, outputTokens: 105 },
+                    { delay: 700, message: "4. Reflecting on retrieved docs:", details: "Found Employee Handbook sections 3.2 and 4.1. These contain the needed information. Cross-referencing with recent updates...", inputTokens: 1780, outputTokens: 92 },
+                    { delay: 800, message: "5. Executing: Checking for policy amendments...", details: "Searching for HR announcements, policy updates, and memos from the last 6 months...", inputTokens: 2010, outputTokens: 88 },
+                    { delay: 600, message: "6. Reflecting on amendments:", details: "No recent changes to remote work or PTO policy. Handbook sections are current.", inputTokens: 2230, outputTokens: 72 },
+                    { delay: 900, message: "7. Generating final response:", details: "\"Remote work: 3 days/week remote, Wed & Thu in-office (Section 3.2). Vacation: 26 days/year after 3 years of tenure (Section 4.1). No recent amendments. [Sources: Employee Handbook 2024]\"", inputTokens: 2430, outputTokens: 92 }
+                ]
+            },
+            {
                 query: "Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.",
                 ai: [
                     { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
                     { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'concerts Warsaw 2024', 'Spotify top artists', 'calendar integration'", inputTokens: 35, outputTokens: 15 },
                     { delay: 1200, message: "3. Processing search results...", details: "Found general information about concert venues in Warsaw and calendar apps, but no personalized data.", inputTokens: 50, outputTokens: 22 },
-                    { delay: 1500, message: "4. Generating response:", details: "Based on web search: Popular concert venues in Warsaw include Torwar Hall and Progresja. However, I cannot access your personal Spotify listening data or automatically check which specific artists you listen to. You'll need to: 1) Check your Spotify Wrapped or stats page manually, 2) Search for those specific artists on Songkick or Bandsintown, 3) Manually add events to your calendar. Web search provides general info but can't complete this personalized, multi-step task automatically.", inputTokens: 72, outputTokens: 95 }
+                    { delay: 1500, message: "4. Generating response:", details: "\"I can't access your Spotify listening history or calendar. Popular concert venues in Warsaw include Torwar Hall and Progresja, but I have no way to know which artists YOU listen to. You'll need to: 1) Check your Spotify stats manually, 2) Search for those artists on Songkick or Bandsintown, 3) Add events to your calendar yourself. A single chat pass cannot complete multi-step tasks that require personal data access and actions across multiple services.\"", inputTokens: 72, outputTokens: 95 }
                 ],
                 rag: [
                     { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
                     { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'concert listings', 'Warsaw events', 'artist schedules'...", inputTokens: 35, outputTokens: 22 },
-                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules", "Doc #89: Guide to concert ticket booking and calendar integration"], inputTokens: 0, outputTokens: 35 },
-                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding retrieved concert data and calendar integration info to enhance LLM prompt with factual information.", inputTokens: 420, outputTokens: 28 },
-                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved context to provide specific concert information...", inputTokens: 420, outputTokens: 0 },
-                    { delay: 1200, message: "6. Final response:", details: "\"Based on our concert database (updated Nov 2024), several popular artists have upcoming shows in Warsaw. However, I cannot access your personal music listening data to determine your specific favorite artists. To get your listening stats, you'll need to connect to your streaming service API. Common venues in Warsaw include: Torwar Hall, Progresja, and COS Torwar. For calendar integration, I can provide iCal format links once specific concerts are identified.\"", inputTokens: 420, outputTokens: 95 }
+                    { delay: 700, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules Europe 2024"], inputTokens: 0, outputTokens: 28 },
+                    { delay: 900, message: "4. Augmenting query with context:", details: "Adding retrieved concert listings to the prompt. But the knowledge base has no access to the user's Spotify data or calendar.", inputTokens: 1235, outputTokens: 22 },
+                    { delay: 1100, message: "5. Generating grounded response:", details: "\"From our concert database: Warsaw upcoming shows include Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), Radiohead (Feb 3, Progresja), and 12 others. However, I cannot access your personal listening history to match these to your taste, and I cannot add events to your calendar. RAG can retrieve static data but cannot take actions or access personal accounts.\"", inputTokens: 1235, outputTokens: 92 }
                 ],
                 agentic: [
                     { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
@@ -493,62 +541,6 @@
                     { delay: 1000, message: "7. Executing: Adding to calendar...", details: "Using Google Calendar API to create events with venue details, ticket links, and reminders...", inputTokens: 2610, outputTokens: 125 },
                     { delay: 800, message: "8. Reflecting on calendar sync:", details: "All 3 events successfully added to calendar. Events include: address, start time, ticket purchase links.", inputTokens: 2870, outputTokens: 138 },
                     { delay: 1200, message: "9. Generating final response:", details: "\"✅ Task complete! Found 3 concerts by your top artists in Warsaw: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja). All events have been added to your calendar with venue info and ticket links. You'll receive reminders 1 week and 1 day before each concert.\"", inputTokens: 3145, outputTokens: 172 }
-                ]
-            },
-            {
-                query: "Find the best restaurants near me that are open now, check their ratings and reviews, and make a reservation for 2 people at 7 PM tonight.",
-                ai: [
-                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
-                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'best restaurants near me', 'restaurant ratings', 'open now'", inputTokens: 32, outputTokens: 14 },
-                    { delay: 1200, message: "3. Processing search results...", details: "Found general restaurant review sites and reservation platforms, but cannot determine user's location or real-time availability.", inputTokens: 46, outputTokens: 24 },
-                    { delay: 1500, message: "4. Generating response:", details: "Web search shows popular restaurant review sites like Yelp and OpenTable exist, but I cannot: 1) Access your current location, 2) Check which restaurants are actually open right now, 3) See real-time availability for 7 PM tonight, 4) Make a reservation on your behalf. You'll need to manually visit Google Maps or OpenTable, search based on your location, filter for availability, and complete the reservation yourself.", inputTokens: 70, outputTokens: 88 }
-                ],
-                rag: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 32, outputTokens: 0 },
-                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'restaurant reviews', 'reservation systems', 'dining guides'...", inputTokens: 32, outputTokens: 20 },
-                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #412: Top-rated restaurants by cuisine and location", "Doc #287: Restaurant reservation best practices", "Doc #156: User review aggregation (2024)"], inputTokens: 0, outputTokens: 32 },
-                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding restaurant database info and reservation protocols to enhance response quality.", inputTokens: 385, outputTokens: 22 },
-                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with retrieved restaurant data to provide recommendations...", inputTokens: 385, outputTokens: 0 },
-                    { delay: 1200, message: "6. Final response:", details: "\"Based on our restaurant database, here are highly-rated options (Note: I cannot verify real-time availability or your exact location): For Italian: Trattoria Luna (4.8★, typically open until 10 PM), For Asian: Sakura Fusion (4.7★, open until 11 PM), For American: The Grill House (4.6★, open until 10 PM). To make a reservation, I recommend using OpenTable or calling directly. Most restaurants can accommodate a party of 2 with a few hours notice.\"", inputTokens: 385, outputTokens: 115 }
-                ],
-                agentic: [
-                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 820, outputTokens: 0 },
-                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Get user's current location via Geolocation API.", "Step 2: Query restaurant APIs (Google Places, Yelp) for nearby options.", "Step 3: Filter for restaurants open now with availability.", "Step 4: Rank by ratings and review sentiment.", "Step 5: Make reservation via OpenTable/Resy API.", "Step 6: Send confirmation to user."], inputTokens: 1180, outputTokens: 195 },
-                    { delay: 1000, message: "3. Executing: Getting location...", details: "Accessing Geolocation API... Location: 40.7580° N, 73.9855° W (Midtown Manhattan, NYC)", inputTokens: 1510, outputTokens: 128 },
-                    { delay: 800, message: "4. Reflecting on location data:", details: "Location confirmed. Proceeding to search restaurants within 1 mile radius.", inputTokens: 1770, outputTokens: 120 },
-                    { delay: 1000, message: "5. Executing: Querying restaurant APIs...", details: "Found 47 restaurants currently open. Filtering for 7 PM availability...", inputTokens: 2025, outputTokens: 122 },
-                    { delay: 900, message: "6. Reflecting on restaurant results:", details: "12 restaurants available with 4.5+ ratings. Top 3: Le Bernardin (4.9★, seafood), Carbone (4.8★, Italian), Momofuku Ko (4.7★, Asian fusion).", inputTokens: 2280, outputTokens: 152 },
-                    { delay: 1000, message: "7. Executing: Making reservation...", details: "User preference: high-rated, diverse options. Attempting reservation at Carbone via Resy API for 2 guests at 7:00 PM...", inputTokens: 2565, outputTokens: 135 },
-                    { delay: 800, message: "8. Reflecting on reservation status:", details: "✅ Reservation confirmed! Carbone, 181 Thompson St, NYC. Party of 2 at 7:00 PM tonight. Confirmation #RC-8472-2024.", inputTokens: 2835, outputTokens: 142 },
-                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Reservation complete! You're booked at Carbone (4.8★, Italian) tonight at 7:00 PM for 2 people. Address: 181 Thompson St, New York, NY. Confirmation #RC-8472-2024. The restaurant is known for its classic Italian-American cuisine. A confirmation email has been sent. Enjoy your dinner!\"", inputTokens: 3110, outputTokens: 178 }
-                ]
-            },
-            {
-                query: "Analyze my spending patterns from last month, identify areas where I'm overspending, and create a budget plan with specific recommendations.",
-                ai: [
-                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'budgeting best practices', '50/30/20 rule', 'common overspending areas'", inputTokens: 28, outputTokens: 16 },
-                    { delay: 1200, message: "3. Processing search results...", details: "Found generic budgeting advice and framework recommendations, but no access to user's personal financial data.", inputTokens: 44, outputTokens: 22 },
-                    { delay: 1500, message: "4. Generating response:", details: "Based on web search of budgeting best practices: The 50/30/20 rule suggests 50% needs, 30% wants, 20% savings. Common overspending areas include dining out, subscriptions, and impulse purchases. However, I cannot: 1) Access your actual bank transactions, 2) Analyze your specific spending patterns, 3) Identify YOUR overspending categories, 4) Create a personalized budget. You'll need to manually export your transactions and use budgeting software like Mint or YNAB for personalized analysis.", inputTokens: 66, outputTokens: 110 }
-                ],
-                rag: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'budgeting strategies', 'spending analysis', 'financial planning'...", inputTokens: 28, outputTokens: 20 },
-                    { delay: 900, message: "3. Found relevant documents:", detailsList: ["Doc #823: Personal budgeting frameworks and methods", "Doc #567: Common spending categories and averages", "Doc #234: Financial planning best practices (2024)"], inputTokens: 0, outputTokens: 35 },
-                    { delay: 1000, message: "4. Augmenting query with context:", details: "Adding budgeting frameworks, spending benchmarks, and planning templates to enhance recommendations.", inputTokens: 445, outputTokens: 22 },
-                    { delay: 1100, message: "5. Generating grounded response:", details: "Using LLM with financial planning knowledge to provide budget recommendations...", inputTokens: 445, outputTokens: 0 },
-                    { delay: 1200, message: "6. Final response:", details: "\"While I cannot access your actual spending data, I can provide a framework: 1) Categorize expenses (housing, food, transport, entertainment, etc.), 2) Compare to benchmarks (housing should be <30% of income, food ~10-15%), 3) Use the 50/30/20 rule as a baseline, 4) Track discretionary spending carefully. Common overspending areas: dining out (aim for <5% of income), subscriptions (audit and cancel unused), impulse purchases (implement 24-hour rule). I recommend using budgeting software that connects to your accounts for real-time tracking.\"", inputTokens: 445, outputTokens: 128 }
-                ],
-                agentic: [
-                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 890, outputTokens: 0 },
-                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to user's bank/credit card via Plaid API.", "Step 2: Pull all transactions from last month.", "Step 3: Categorize and analyze spending patterns.", "Step 4: Compare to income and identify overspending categories.", "Step 5: Generate personalized budget recommendations.", "Step 6: Create actionable budget plan with specific limits."], inputTokens: 1240, outputTokens: 192 },
-                    { delay: 1000, message: "3. Executing: Connecting to financial accounts...", details: "Authenticating via Plaid API... Connected to Chase Checking, Amex Credit Card. Pulling transactions...", inputTokens: 1565, outputTokens: 128 },
-                    { delay: 800, message: "4. Reflecting on transaction data:", details: "Retrieved 87 transactions from last month. Total spending: $4,235. Monthly income: $6,500. Savings rate: 35%. Proceeding to categorization.", inputTokens: 1830, outputTokens: 142 },
-                    { delay: 1000, message: "5. Executing: Analyzing spending patterns...", details: "Categorized expenses: Dining $892 (21%), Groceries $485 (11%), Transport $320 (8%), Entertainment $650 (15%), Shopping $720 (17%), Utilities $380 (9%), Other $788 (19%).", inputTokens: 2105, outputTokens: 168 },
-                    { delay: 900, message: "6. Reflecting on spending analysis:", details: "⚠️ Overspending identified: Dining out is 3x recommended amount (should be <7% of income). Entertainment also high at 15%. Shopping shows impulse pattern (12 small transactions under $100).", inputTokens: 2405, outputTokens: 158 },
-                    { delay: 1000, message: "7. Executing: Generating budget recommendations...", details: "Creating personalized plan based on income ($6,500), current spending patterns, and financial goals...", inputTokens: 2695, outputTokens: 125 },
-                    { delay: 800, message: "8. Reflecting on budget plan:", details: "Recommended budget: Dining $455 (7%), Groceries $520 (8%), Transport $325 (5%), Entertainment $390 (6%), Shopping $390 (6%), Utilities $380 (6%), Savings $1,625 (25%), Other $2,415 (37%). This reduces discretionary spending by $1,050/month.", inputTokens: 2955, outputTokens: 182 },
-                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Analysis complete! Last month you spent $4,235 with overspending in: 🍽️ Dining ($892 - reduce to $455), 🎬 Entertainment ($650 - reduce to $390), 🛍️ Shopping ($720 - reduce to $390). Your personalized budget plan can save $1,050/month, increasing savings from $2,265 to $3,315 (51% savings rate). Key actions: 1) Meal prep 3x/week, 2) Cancel 2 unused subscriptions, 3) Implement 48-hour rule for purchases >$50. Track progress with Mint or YNAB.\"", inputTokens: 3270, outputTokens: 195 }
                 ]
             }
         ];
