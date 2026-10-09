@@ -132,6 +132,88 @@ probe('data: use states are valid and only the agent ever acts', async page => {
   assert(bad.length === 0, bad.join(', '));
 });
 
+probe('matrix: three lane heads and a 5x3 grid of cells', async page => {
+  const c = await page.evaluate(() => ({
+    heads: document.querySelectorAll('#matrix .lane-head').length,
+    rows: document.querySelectorAll('#matrix .row-head').length,
+    cells: document.querySelectorAll('#matrix .cell[data-lane][data-phase]').length
+  }));
+  assert(c.heads === 3 && c.rows === 5 && c.cells === 15, JSON.stringify(c));
+});
+probe('stepper: Dalej reveals exactly one row in all three lanes', async page => {
+  await page.click('#nextBtn');
+  const cells = await page.evaluate(() => [...document.querySelectorAll('#matrix .cell')].map(c => `${c.dataset.phase}:${c.dataset.cell}`));
+  const current = cells.filter(c => c.endsWith(':current'));
+  assert(current.length === 3 && current.every(c => c.startsWith('source:')), `current: ${current}`);
+  assert(!cells.some(c => c.endsWith(':shown')), 'unexpected shown cells');
+  assert((await appState(page)).status === 'running', 'status not running');
+});
+probe('stepper: Space on a focused button advances only once', async page => {
+  await page.focus('#nextBtn');
+  await page.keyboard.press(' ');
+  assert((await appState(page)).step === '1', 'Space double-advanced');
+});
+probe('stepper: step is clamped at both ends', async page => {
+  await press(page, 'ArrowLeft', 3);
+  assert((await appState(page)).step === '0', 'went below 0');
+  await press(page, 'ArrowRight', 12);
+  const s = await appState(page);
+  assert(s.step === '5' && s.status === 'done', `end state ${JSON.stringify(s)}`);
+  assert(await page.evaluate(() => document.getElementById('nextBtn').disabled), 'next not disabled at end');
+});
+probe('stepper: keyboard shortcuts R and 1-3', async page => {
+  await press(page, 'ArrowRight', 2);
+  await page.keyboard.press('3');
+  let s = await appState(page);
+  assert(s.scenario === 'task' && s.step === '0', `after 3: ${JSON.stringify(s)}`);
+  await press(page, 'ArrowRight', 2);
+  await page.keyboard.press('r');
+  s = await appState(page);
+  assert(s.step === '0', 'R did not reset');
+});
+probe('stepper: autoplay advances and switching scenario stops it', async page => {
+  await page.keyboard.press('a');
+  let s = await appState(page);
+  assert(s.playing === 'true' && s.step === '1', `autoplay start ${JSON.stringify(s)}`);
+  await page.keyboard.press('2');
+  s = await appState(page);
+  assert(s.playing === 'false' && s.scenario === 'company' && s.step === '0', `after switch ${JSON.stringify(s)}`);
+  await page.waitForTimeout(3000);
+  assert((await appState(page)).step === '0', 'stale timer advanced the new scenario');
+});
+probe('stepper: autoplay stops by itself at the end', async page => {
+  await page.evaluate(() => { App.step = 4; render(); });
+  await page.keyboard.press('a');
+  const s = await appState(page);
+  assert(s.step === '5' && s.playing === 'false', JSON.stringify(s));
+});
+probe('stepper: language switch keeps scenario and step', async page => {
+  await page.keyboard.press('2');
+  await press(page, 'ArrowRight', 3);
+  await page.click('#langBtn');
+  const s = await appState(page);
+  assert(s.lang === 'en' && s.scenario === 'company' && s.step === '3', JSON.stringify(s));
+  const cur = await page.evaluate(() => document.querySelectorAll('#matrix .cell[data-cell="current"][data-phase="action"]').length);
+  assert(cur === 3, 'cell states lost after rebuild');
+});
+probe('a11y: live region and progress follow the step', async page => {
+  await press(page, 'ArrowRight', 2);
+  const info = await page.evaluate(() => ({ live: document.getElementById('live').textContent, now: document.getElementById('progress').getAttribute('aria-valuenow'), politeness: document.getElementById('live').getAttribute('aria-live') }));
+  assert(info.politeness === 'polite', 'live region not polite');
+  assert(info.now === '2', `aria-valuenow ${info.now}`);
+  assert(info.live.includes('Krok 2 z 5') && info.live.includes('Jak pracuje?'), `live: ${info.live}`);
+});
+probe('flow: the current phase lights the matching node in each lane', async page => {
+  await page.keyboard.press('ArrowRight');
+  const active = await page.evaluate(() => [...document.querySelectorAll('.flow-node.is-active')].map(n => `${n.dataset.lane}:${n.dataset.node}`).sort().join(','));
+  assert(active === 'agent:tools,chat:model,rag:docs', `active: ${active}`);
+});
+probe('cells: missing abilities are labelled, not left blank', async page => {
+  await press(page, 'ArrowRight', 3);
+  const labels = await page.evaluate(() => [...document.querySelectorAll('#matrix .cell[data-phase="action"]')].map(c => `${c.dataset.lane}:${c.dataset.use}:${c.querySelector('.use-badge')?.textContent || ''}`));
+  assert(labels.includes('chat:unavailable:Tego nie potrafi') && labels.includes('rag:unavailable:Tego nie potrafi') && labels.includes('agent:unused:Potrafi, ale tu nie trzeba'), labels.join(' | '));
+});
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));

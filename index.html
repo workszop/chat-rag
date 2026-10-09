@@ -242,6 +242,48 @@ main > section { margin-block: var(--sp-12); }
 .progress { flex: 1 1 10rem; height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
 .progress-fill { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s ease; }
 .progress-label { font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
+/* ─── Scenario picker & question ─── */
+.scenario-picker { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-block: var(--sp-3) var(--sp-5); }
+.scenario-btn { display: grid; grid-template-columns: auto 1fr; column-gap: var(--sp-2); text-align: start; background: var(--paper-2); color: var(--ink); border: 0; border-radius: var(--r-lg); padding: var(--sp-3) var(--sp-4); cursor: pointer; transition: background-color .2s ease; }
+.scenario-btn[aria-pressed="true"] { background: var(--yellow); color: var(--yellow-ink); }
+.scenario-key { grid-row: span 2; align-self: center; font: 600 var(--caption) var(--font-mono); background: var(--surface); color: var(--ink); border-radius: var(--r-pill); padding: 2px 8px; }
+.scenario-tab { font: 600 var(--body-sm) var(--font-display); }
+.scenario-hint { font: var(--caption) var(--font-sans); color: inherit; opacity: .8; }
+.question-wrap { margin: 0 0 var(--sp-5); }
+.question { margin: var(--sp-2) 0 0; font: 600 var(--body-lg)/1.5 var(--font-display); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-sm); }
+
+/* ─── Matrix ─── */
+.matrix { display: grid; grid-template-columns: var(--row-head-w) repeat(3, minmax(0, 1fr)); gap: var(--sp-3); max-width: var(--matrix-max); margin-inline: auto; padding-inline: var(--sp-5); box-sizing: border-box; }
+.lane-head { background: var(--lane); color: var(--lane-ink); border-radius: var(--r-lg); padding: var(--sp-4); }
+.lane-name { margin: 0; font: 700 var(--h3, var(--body-lg)) var(--font-display); }
+.lane-tagline { margin: 2px 0 0; font: var(--body-sm) var(--font-sans); }
+.flow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1); list-style: none; margin: var(--sp-3) 0 0; padding: 0; }
+.flow-node { display: inline-flex; align-items: center; gap: 4px; background: var(--surface); color: var(--ink); border: 2px solid transparent; border-radius: var(--r-pill); padding: 2px 10px; font: 500 var(--caption)/1.5 var(--font-mono); transition: background-color .25s ease; }
+.flow-node + .flow-node::before { content: '→'; margin-right: 6px; color: var(--ink-3); }
+.flow-node[data-added="true"] { border-color: var(--ink); }
+.flow-node.is-active { background: var(--yellow); color: var(--yellow-ink); }
+.added-badge { font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
+.row-head { display: flex; gap: var(--sp-2); align-items: flex-start; padding: var(--sp-4) var(--sp-3); background: var(--paper-2); color: var(--ink); border-radius: var(--r-md); font: 600 var(--body-sm)/1.4 var(--font-display); transition: background-color .25s ease; }
+.row-num { font: 600 var(--caption) var(--font-mono); background: var(--surface); border-radius: var(--r-pill); padding: 0 8px; }
+.row-head[data-cell="current"] { background: var(--yellow); color: var(--yellow-ink); }
+.cell { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4); box-shadow: var(--shadow-sm); font: var(--body-sm)/1.5 var(--font-sans); }
+.cell[data-cell="hidden"] { background: var(--paper-2); border-style: dashed; box-shadow: none; }
+.cell[data-cell="hidden"] .cell-content { display: none; }
+.cell:not([data-cell="hidden"]) .cell-placeholder { display: none; }
+.cell-placeholder { margin: 0; color: var(--ink-3); font: var(--caption) var(--font-mono); }
+.cell[data-cell="current"] { outline: 3px solid var(--yellow); animation: cell-in .35s ease; }
+@keyframes cell-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.cell[data-use="unavailable"]:not([data-cell="hidden"]), .cell[data-use="unused"]:not([data-cell="hidden"]) { background: var(--paper-2); color: var(--ink-2); box-shadow: none; }
+.use-badge { display: inline-block; margin-bottom: var(--sp-2); background: var(--ink); color: var(--paper); border-radius: var(--r-pill); padding: 2px 10px; font: 500 var(--caption) var(--font-mono); }
+.cell[data-use="unused"] .use-badge { background: var(--paper-3); color: var(--ink); }
+.cell-title { margin: 0 0 4px; font-weight: 600; }
+.cell-body { margin: 0; }
+.cell-items { margin: var(--sp-2) 0 0; padding-left: 1.2em; font-size: var(--caption); }
+.answer { margin: 0; background: var(--paper-2); border-radius: var(--r-sm); padding: var(--sp-3); }
+.loop { list-style: none; margin: var(--sp-2) 0 0; padding: 0; display: grid; gap: var(--sp-1); font-size: var(--caption); }
+.loop-step { display: grid; grid-template-columns: 7.5rem 1fr; gap: var(--sp-2); align-items: start; }
+.loop-kind { justify-self: start; background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 0 8px; font: 500 var(--caption) var(--font-mono); text-transform: uppercase; }
+.loop-step[data-kind="reflect"] .loop-kind { background: var(--paper-3); color: var(--ink); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -658,8 +700,46 @@ function el(tag, attrs = {}, children = []) {
   node.append(...children.filter(Boolean));
   return node;
 }
+function scenarioText() { return t('scenarios')[App.scenarioId]; }
+function meta() { return SCENARIO_META[App.scenarioId]; }
+function locale() { return App.lang === 'pl' ? 'pl-PL' : 'en-GB'; }
+function num(v) { return v.toLocaleString(locale()); }
+function money(v) { return new Intl.NumberFormat(locale(), { style: 'currency', currency: 'PLN' }).format(v); }
+function totalTokens(cost) { return cost.in + cost.out; }
+function costPerThousand(cost) { return (cost.in * PRICE_PLN_PER_MTOK.in + cost.out * PRICE_PLN_PER_MTOK.out) / 1000; }
+
+// Actions: every change goes through these, then render().
+function stopPlay() { App.playing = false; clearTimeout(App.timer); App.timer = null; }
+function goTo(step) {
+  App.step = Math.max(0, Math.min(PHASES.length, step));
+  if (App.step === PHASES.length) stopPlay();
+  render();
+}
+function next() { goTo(App.step + 1); }
+function userNext() { stopPlay(); next(); }
+function prev() { stopPlay(); goTo(App.step - 1); }
+function reset() { stopPlay(); goTo(0); }
+function tick() {
+  next();
+  if (App.playing) App.timer = setTimeout(tick, AUTO_MS);
+}
+function togglePlay() {
+  if (App.playing) { stopPlay(); render(); return; }
+  if (App.step === PHASES.length) App.step = 0;
+  App.playing = true;
+  tick();
+}
+function setScenario(id) {
+  if (!SCENARIO_IDS.includes(id)) return;
+  stopPlay();
+  App.scenarioId = id;
+  App.step = 0;
+  buildMatrix();
+  render();
+}
 function setLang(lang) {
   if (!T[lang]) return;
+  stopPlay();
   App.lang = lang;
   try { localStorage.setItem(LANG_KEY, lang); } catch {}
   build();
@@ -674,20 +754,109 @@ function applyI18n() {
   langBtn.textContent = t('langSwitch');
   langBtn.setAttribute('aria-label', t('langSwitchLabel'));
 }
-function build() { applyI18n(); }
+function buildPicker() {
+  const scenarios = t('scenarios');
+  scenarioPicker.replaceChildren(...SCENARIO_IDS.map((id, i) => el('button', { type: 'button', class: 'scenario-btn', dataset: { scenarioId: id }, 'aria-pressed': 'false' }, [
+    el('span', { class: 'scenario-key', text: String(i + 1) }),
+    el('span', { class: 'scenario-tab', text: scenarios[id].tab }),
+    el('span', { class: 'scenario-hint', text: scenarios[id].hint })
+  ])));
+}
+function buildFlow(lane) {
+  const nodes = t('nodes');
+  return el('ol', { class: 'flow', 'aria-label': t('flowLabel') }, FLOW[lane].map(n => el('li', { class: 'flow-node', dataset: { lane, node: n.id, added: n.added ? 'true' : 'false' } }, [
+    el('span', { text: nodes[n.id] }),
+    n.added ? el('span', { class: 'added-badge', text: t('added') }) : null
+  ])));
+}
+function buildCell(lane, phase, text, m) {
+  const laneMeta = m.lanes[lane];
+  const use = laneMeta.use[phase] || 'used';
+  const content = el('div', { class: 'cell-content' });
+  if (phase === 'answer') {
+    content.append(el('blockquote', { class: 'answer', text: text.body }));
+  } else if (phase === 'verdict') {
+    content.append(el('p', { class: 'cell-body', text: text.body }));
+  } else {
+    if (use !== 'used') content.append(el('span', { class: 'use-badge', text: t('use')[use] }));
+    content.append(el('p', { class: 'cell-title', text: text.title }), el('p', { class: 'cell-body', text: text.body }));
+    if (text.items) content.append(el('ul', { class: 'cell-items' }, text.items.map(item => el('li', { text: item }))));
+    if (text.loop) content.append(el('ol', { class: 'loop' }, text.loop.map((step, i) => el('li', { class: 'loop-step', dataset: { kind: laneMeta.loop[i] } }, [
+      el('span', { class: 'loop-kind', text: t('loopKinds')[laneMeta.loop[i]] }),
+      el('span', { text: step })
+    ]))));
+  }
+  const laneName = t('ladder')[lane].name;
+  return el('div', {
+    class: 'cell', role: 'group', 'aria-label': `${laneName}: ${t('phases')[phase]}`,
+    dataset: { lane, phase, use, laneName, winner: phase === 'verdict' && lane === m.winner ? 'true' : 'false' }
+  }, [el('p', { class: 'cell-placeholder', text: t('pending') }), content]);
+}
+function buildMatrix() {
+  const s = scenarioText();
+  const m = meta();
+  const ladder = t('ladder');
+  questionEl.textContent = s.question;
+  const heads = [el('div', { class: 'matrix-corner', 'aria-hidden': 'true' }), ...LANES.map(lane => el('div', { class: 'lane-head edu-block', dataset: { lane } }, [
+    el('h3', { class: 'lane-name', text: ladder[lane].name }),
+    el('p', { class: 'lane-tagline', text: ladder[lane].tagline }),
+    buildFlow(lane)
+  ]))];
+  const rows = PHASES.flatMap((phase, i) => [
+    el('div', { class: 'row-head', dataset: { phase } }, [
+      el('span', { class: 'row-num', text: String(i + 1) }),
+      el('span', { class: 'row-label', text: t('phases')[phase] })
+    ]),
+    ...LANES.map(lane => buildCell(lane, phase, s.lanes[lane][phase], m))
+  ]);
+  matrixEl.replaceChildren(...heads, ...rows);
+}
+function build() { applyI18n(); buildPicker(); buildMatrix(); }
 function render() {
   const total = PHASES.length;
   const status = App.step === 0 ? 'idle' : App.step === total ? 'done' : 'running';
+  const phase = PHASES[App.step - 1] || null;
   Object.assign(rootEl.dataset, { lang: App.lang, scenario: App.scenarioId, step: String(App.step), status, playing: String(App.playing) });
+  matrixEl.querySelectorAll('[data-phase]').forEach(node => {
+    const index = PHASES.indexOf(node.dataset.phase) + 1;
+    node.dataset.cell = index < App.step ? 'shown' : index === App.step ? 'current' : 'hidden';
+  });
+  matrixEl.querySelectorAll('.flow-node').forEach(node => {
+    node.classList.toggle('is-active', phase !== null && FLOW_HIGHLIGHT[node.dataset.lane][phase] === node.dataset.node);
+  });
+  scenarioPicker.querySelectorAll('.scenario-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.scenarioId === App.scenarioId)));
+  prevBtn.disabled = App.step === 0;
+  nextBtn.disabled = App.step === total;
   playBtn.textContent = t(App.playing ? 'pause' : 'play');
-  progressLabel.textContent = t('stepIdle');
+  playBtn.setAttribute('aria-pressed', String(App.playing));
+  progressEl.setAttribute('aria-valuenow', String(App.step));
+  progressFill.style.width = `${App.step / total * 100}%`;
+  const label = status === 'idle' ? t('stepIdle') : `${fmt(t('stepOf'), { n: App.step, total })}: ${t('phases')[phase]}`;
+  progressLabel.textContent = label;
+  liveEl.textContent = status === 'done' ? `${label}. ${t('winner')}: ${t('ladder')[meta().winner].name}` : label;
 }
 
 // ─── Listeners ───
+prevBtn.addEventListener('click', prev);
+nextBtn.addEventListener('click', userNext);
+playBtn.addEventListener('click', togglePlay);
+resetBtn.addEventListener('click', reset);
 langBtn.addEventListener('click', () => setLang(App.lang === 'pl' ? 'en' : 'pl'));
+scenarioPicker.addEventListener('click', e => {
+  const btn = e.target.closest('.scenario-btn');
+  if (btn) setScenario(btn.dataset.scenarioId);
+});
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
-  if (e.key.toLowerCase() === 'l') setLang(App.lang === 'pl' ? 'en' : 'pl');
+  // A focused button already handles Space/Enter natively; handling it here too would double-step.
+  if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('button')) return;
+  const key = e.key.toLowerCase();
+  if (key === 'arrowright' || key === ' ') { e.preventDefault(); userNext(); }
+  else if (key === 'arrowleft') { e.preventDefault(); prev(); }
+  else if (key === 'r') reset();
+  else if (key === 'a') togglePlay();
+  else if (key === 'l') setLang(App.lang === 'pl' ? 'en' : 'pl');
+  else if (['1', '2', '3'].includes(key)) setScenario(SCENARIO_IDS[Number(key) - 1]);
 });
 
 // ─── Init ───
