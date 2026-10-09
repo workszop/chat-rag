@@ -284,6 +284,16 @@ main > section { margin-block: var(--sp-12); }
 .loop-step { display: grid; grid-template-columns: 7.5rem 1fr; gap: var(--sp-2); align-items: start; }
 .loop-kind { justify-self: start; background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 0 8px; font: 500 var(--caption) var(--font-mono); text-transform: uppercase; }
 .loop-step[data-kind="reflect"] .loop-kind { background: var(--paper-3); color: var(--ink); }
+/* ─── Verdict ─── */
+.grade { display: inline-block; margin-bottom: var(--sp-2); background: var(--paper-3); color: var(--ink); border-radius: var(--r-pill); padding: 2px 12px; font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
+.grade[data-grade="fail"] { background: var(--red); color: var(--red-ink); }
+.cell[data-winner="true"]:not([data-cell="hidden"]) { background: var(--yellow); color: var(--yellow-ink); }
+.cell[data-winner="true"] .grade { background: var(--ink); color: var(--paper); }
+.cost { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--sp-3); margin: var(--sp-3) 0 var(--sp-2); font-size: var(--caption); }
+.cost dt { color: inherit; opacity: .8; }
+.cost dd { margin: 0; text-align: end; font-family: var(--font-mono); }
+.cost-bar { height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
+.cost-bar-fill { display: block; height: 100%; background: var(--lane); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -769,6 +779,23 @@ function buildFlow(lane) {
     n.added ? el('span', { class: 'added-badge', text: t('added') }) : null
   ])));
 }
+function buildVerdict(lane, text, m) {
+  const laneMeta = m.lanes[lane];
+  const tokens = totalTokens(laneMeta.cost);
+  const maxTokens = Math.max(...LANES.map(l => totalTokens(m.lanes[l].cost)));
+  return [
+    el('span', { class: 'grade', dataset: { grade: laneMeta.grade }, text: t('grades')[laneMeta.grade] }),
+    el('p', { class: 'cell-body', text: text.body }),
+    el('dl', { class: 'cost' }, [
+      el('dt', { text: t('costTokens') }), el('dd', { dataset: { tokens: String(tokens) }, text: num(tokens) }),
+      el('dt', { text: t('costTime') }), el('dd', { text: fmt(t('seconds'), { n: laneMeta.cost.seconds }) }),
+      el('dt', { text: t('costThousand') }), el('dd', { text: money(costPerThousand(laneMeta.cost)) })
+    ]),
+    el('div', { class: 'cost-bar', 'aria-hidden': 'true' }, [
+      el('span', { class: 'cost-bar-fill', style: `width: ${Math.max(2, Math.round(tokens / maxTokens * 100))}%` })
+    ])
+  ];
+}
 function buildCell(lane, phase, text, m) {
   const laneMeta = m.lanes[lane];
   const use = laneMeta.use[phase] || 'used';
@@ -776,7 +803,7 @@ function buildCell(lane, phase, text, m) {
   if (phase === 'answer') {
     content.append(el('blockquote', { class: 'answer', text: text.body }));
   } else if (phase === 'verdict') {
-    content.append(el('p', { class: 'cell-body', text: text.body }));
+    content.append(...buildVerdict(lane, text, m));
   } else {
     if (use !== 'used') content.append(el('span', { class: 'use-badge', text: t('use')[use] }));
     content.append(el('p', { class: 'cell-title', text: text.title }), el('p', { class: 'cell-body', text: text.body }));

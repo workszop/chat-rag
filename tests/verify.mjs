@@ -214,6 +214,28 @@ probe('cells: missing abilities are labelled, not left blank', async page => {
   assert(labels.includes('chat:unavailable:Tego nie potrafi') && labels.includes('rag:unavailable:Tego nie potrafi') && labels.includes('agent:unused:Potrafi, ale tu nie trzeba'), labels.join(' | '));
 });
 
+probe('verdict: winner cell is marked and graded best', async page => {
+  for (const [key, winner] of [['1', 'chat'], ['2', 'rag'], ['3', 'agent']]) {
+    await page.keyboard.press(key);
+    await press(page, 'ArrowRight', 5);
+    const w = await page.evaluate(() => [...document.querySelectorAll('#matrix .cell[data-phase="verdict"][data-winner="true"]')].map(c => ({ lane: c.dataset.lane, grade: c.querySelector('.grade')?.dataset.grade })));
+    assert(w.length === 1 && w[0].lane === winner && w[0].grade === 'best', `${key}: ${JSON.stringify(w)}`);
+    const live = await page.evaluate(() => document.getElementById('live').textContent);
+    assert(live.includes('Wygrywa'), `live at end: ${live}`);
+  }
+});
+probe('cost: displayed tokens match the data and bars grow chat < RAG < agent', async page => {
+  await page.keyboard.press('3');
+  await press(page, 'ArrowRight', 5);
+  const rows = await page.evaluate(() => LANES.map(lane => {
+    const cell = document.querySelector(`#matrix .cell[data-phase="verdict"][data-lane="${lane}"]`);
+    const c = SCENARIO_META.task.lanes[lane].cost;
+    return { lane, shown: Number(cell.querySelector('[data-tokens]')?.dataset.tokens), expected: c.in + c.out, width: cell.querySelector('.cost-bar-fill')?.getBoundingClientRect().width || 0 };
+  }));
+  rows.forEach(r => assert(r.shown === r.expected, `${r.lane} tokens ${r.shown} != ${r.expected}`));
+  assert(rows[2].width > rows[1].width && rows[1].width > rows[0].width, `bars not ordered: ${rows.map(r => r.width)}`);
+});
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));
