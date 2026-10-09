@@ -209,8 +209,9 @@ body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-
 <style>
 /* ─── App tokens ─── */
 :root {
-  --lane-chat: var(--blue);        --lane-chat-ink: var(--blue-ink);
-  --lane-rag: var(--green);        --lane-rag-ink: var(--green-ink);
+  /* Darker than --blue / --green so small white text reaches 4.5:1 (4.8 and 4.9). */
+  --lane-chat: var(--blue-600);    --lane-chat-ink: var(--blue-ink);
+  --lane-rag: color-mix(in srgb, var(--green) 75%, var(--ink)); --lane-rag-ink: var(--green-ink);
   --lane-agent: var(--play-grape); --lane-agent-ink: var(--blue-ink);
   --shell-max: 1100px;
   --matrix-max: 1360px;
@@ -247,6 +248,8 @@ main > section { margin-block: var(--sp-12); }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
 .progress { flex: 1 1 10rem; height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
 .progress-fill { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s ease; }
+.shortcuts-btn { background: var(--paper-2); color: var(--ink-2); border: 0; border-radius: var(--r-pill); padding: 2px 10px; font: 500 var(--caption) var(--font-sans); cursor: pointer; }
+.shortcuts-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 .progress-label { font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
 /* ─── Scenario picker & question ─── */
 .scenario-picker { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-block: var(--sp-3) var(--sp-5); }
@@ -255,6 +258,7 @@ main > section { margin-block: var(--sp-12); }
 .scenario-key { grid-row: span 2; align-self: center; font: 600 var(--caption) var(--font-mono); background: var(--surface); color: var(--ink); border-radius: var(--r-pill); padding: 2px 8px; }
 .scenario-tab { font: 600 var(--body-sm) var(--font-display); }
 .scenario-hint { font: var(--caption) var(--font-sans); color: inherit; opacity: .8; }
+.demo { scroll-margin-top: var(--header-h); }
 .question-wrap { margin: 0 0 var(--sp-5); scroll-margin-top: calc(var(--header-h) + var(--sp-3)); }
 .question { margin: var(--sp-2) 0 0; font: 600 var(--body-lg)/1.5 var(--font-display); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-sm); }
 
@@ -279,7 +283,7 @@ main > section { margin-block: var(--sp-12); }
 .cell[data-cell="hidden"] { background: var(--paper-2); border-style: dashed; box-shadow: none; }
 .cell[data-cell="hidden"] .cell-content { display: none; }
 .cell:not([data-cell="hidden"]) .cell-placeholder { display: none; }
-.cell-placeholder { margin: 0; color: var(--ink-3); font: var(--caption) var(--font-mono); }
+.cell-placeholder { margin: 0; color: var(--ink-2); font: var(--caption) var(--font-mono); }
 .cell[data-cell="current"] { outline: 3px solid var(--yellow); animation: cell-in .35s ease; }
 @keyframes cell-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .cell[data-use="unavailable"]:not([data-cell="hidden"]), .cell[data-use="unused"]:not([data-cell="hidden"]) { background: var(--paper-2); color: var(--ink-2); box-shadow: none; }
@@ -295,7 +299,7 @@ main > section { margin-block: var(--sp-12); }
 .loop-step[data-kind="reflect"] .loop-kind { background: var(--paper-3); color: var(--ink); }
 /* ─── Verdict ─── */
 .grade { display: inline-block; margin-bottom: var(--sp-2); background: var(--paper-3); color: var(--ink); border-radius: var(--r-pill); padding: 2px 12px; font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
-.grade[data-grade="fail"] { background: var(--red); color: var(--red-ink); }
+.grade[data-grade="fail"] { background: var(--red-600); color: var(--red-ink); }
 .cell[data-winner="true"]:not([data-cell="hidden"]) { background: var(--yellow); color: var(--yellow-ink); }
 .cell[data-winner="true"] .grade { background: var(--ink); color: var(--paper); }
 .cost { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--sp-3); margin: var(--sp-3) 0 var(--sp-2); font-size: var(--caption); }
@@ -373,7 +377,7 @@ main > section { margin-block: var(--sp-12); }
           <blockquote id="question" class="question"></blockquote>
         </figure>
       </div>
-      <div class="controls" role="toolbar" aria-labelledby="demoTitle">
+      <div class="controls" role="group" aria-labelledby="demoTitle">
         <button id="prevBtn" class="btn btn-secondary" type="button" data-i18n="prev"></button>
         <button id="nextBtn" class="btn btn-primary" type="button" data-i18n="next"></button>
         <button id="playBtn" class="btn btn-secondary" type="button" aria-pressed="false"></button>
@@ -382,7 +386,7 @@ main > section { margin-block: var(--sp-12); }
         <span id="progressLabel" class="progress-label"></span>
       </div>
       <div id="matrix" class="matrix"></div>
-      <p class="kbd-hint edu-caption shell" data-i18n="kbdHint"></p>
+      <p class="kbd-hint edu-caption shell"><span data-i18n="kbdHint"></span> <button id="shortcutsBtn" class="shortcuts-btn" type="button" aria-pressed="true"></button></p>
       <p class="cost-note edu-caption shell" data-i18n="costNote"></p>
       <p id="live" class="sr-only" aria-live="polite"></p>
     </section>
@@ -407,6 +411,9 @@ const AUTO_MS = 2600;
 const PHONE_QUERY = '(max-width: 768px)';
 const REVEAL_GAP_PX = 12;
 const LANG_KEY = 'chat-rag-language';
+const SHORTCUTS_KEY = 'chat-rag-shortcuts';
+const FONT_WAIT_MS = 1500;
+const BRAND_FONTS = ['400 1em Outfit', '700 1em Outfit', '400 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "Roboto Mono"'];
 const PRICE_PLN_PER_MTOK = { in: 5, out: 20 };
 const FLOW = {
   chat:  [{ id: 'question' }, { id: 'model' }, { id: 'answer' }],
@@ -439,7 +446,7 @@ const SCENARIO_META = {
     winner: 'agent',
     lanes: {
       chat:  { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'fail', cost: { in: 50,    out: 80,   seconds: 2 } },
-      rag:   { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'weak', cost: { in: 1300,  out: 95,   seconds: 4 } },
+      rag:   { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'partial', cost: { in: 1300,  out: 95,   seconds: 4 } },
       agent: { use: { source: 'used', process: 'used', action: 'used' },        grade: 'best', cost: { in: 16500, out: 1050, seconds: 28 }, loop: ['plan', 'tool', 'reflect', 'tool', 'reflect', 'tool', 'reflect'] }
     }
   }
@@ -466,7 +473,7 @@ const T = {
     phases: { source: 'Skąd bierze wiedzę?', process: 'Jak pracuje?', action: 'Czy coś robi w świecie?', answer: 'Odpowiedź', verdict: 'Ocena i koszt' },
     use: { unused: 'Potrafi, ale tu nie trzeba', unavailable: 'Tego nie potrafi' },
     loopKinds: { plan: 'Plan', tool: 'Narzędzie', reflect: 'Sprawdzenie' },
-    grades: { best: 'Najlepszy wybór', overkill: 'Działa, ale przepłacasz', weak: 'Odpowiedź ogólnikowa', fail: 'Nie wykona zadania' },
+    grades: { best: 'Najlepszy wybór', overkill: 'Działa, ale przepłacasz', weak: 'Odpowiedź ogólnikowa', partial: 'Tylko częściowo', fail: 'Nie wykona zadania' },
     pending: 'Kliknij „Dalej”',
     prev: 'Wstecz', next: 'Dalej', play: 'Odtwarzaj', pause: 'Pauza', reset: 'Od początku',
     stepOf: 'Krok {n} z {total}',
@@ -537,7 +544,7 @@ const T = {
           },
           rag: {
             source: { title: 'Dokumenty firmy', body: 'Znajduje w bazie 3 pasujące fragmenty.', items: ['Regulamin pracy 2026, § 12: Urlopy', 'Regulamin pracy 2026, § 7: Praca zdalna', 'FAQ działu kadr: staż pracy'] },
-            process: { title: 'Pytanie + 3 fragmenty regulaminu', body: 'Dokleja do pytania ok. 1800 tokenów z regulaminu i pisze odpowiedź z odwołaniem do źródeł.' },
+            process: { title: 'Pytanie + 3 znalezione fragmenty', body: 'Dokleja do pytania ok. 1800 tokenów z regulaminu i FAQ kadr, a potem pisze odpowiedź z odwołaniem do źródeł.' },
             action: { title: 'Brak działań', body: 'RAG odpowiada wyłącznie tekstem.' },
             answer: { body: 'Po 3 latach pracy w firmie dostajesz 2 dni urlopu ponad wymiar z Kodeksu pracy, czyli 22 albo 28 dni, zależnie od ogólnego stażu (Regulamin pracy, § 12). Zdalnie możesz pracować do 3 dni w tygodniu, a we wtorki i czwartki pracujemy w biurze (§ 7).' },
             verdict: { body: 'Konkretna odpowiedź z Twoich dokumentów, ze wskazaniem źródła. Szybko i tanio.' }
@@ -580,6 +587,7 @@ const T = {
       }
     },
     footer: 'Symulacja edukacyjna. Żaden model AI nie jest tu wywoływany, a firma i wykonawcy są fikcyjni.',
+    shortcutsOn: 'Skróty klawiszowe: włączone', shortcutsOff: 'Skróty klawiszowe: wyłączone',
     langSwitch: 'EN', langSwitchLabel: 'Switch to English'
   },
   en: {
@@ -603,7 +611,7 @@ const T = {
     phases: { source: 'Where does the knowledge come from?', process: 'How does it work?', action: 'Does it act in the world?', answer: 'Response', verdict: 'Verdict and cost' },
     use: { unused: 'Can, but not needed here', unavailable: 'Cannot do this' },
     loopKinds: { plan: 'Plan', tool: 'Tool', reflect: 'Check' },
-    grades: { best: 'Best choice', overkill: 'Works, but you overpay', weak: 'Vague answer', fail: 'Cannot do the task' },
+    grades: { best: 'Best choice', overkill: 'Works, but you overpay', weak: 'Vague answer', partial: 'Only partly', fail: 'Cannot do the task' },
     pending: 'Press “Next”',
     prev: 'Back', next: 'Next', play: 'Play', pause: 'Pause', reset: 'Start over',
     stepOf: 'Step {n} of {total}',
@@ -674,7 +682,7 @@ const T = {
           },
           rag: {
             source: { title: 'Company documents', body: 'It finds 3 matching passages in the base.', items: ['Work regulations 2026, § 12: Leave', 'Work regulations 2026, § 7: Remote work', 'HR FAQ: length of service'] },
-            process: { title: 'Question + 3 passages from the regulations', body: 'It adds about 1800 tokens from the regulations and writes an answer that cites them.' },
+            process: { title: 'Question + 3 retrieved passages', body: 'It adds about 1800 tokens from the regulations and the HR FAQ, then writes an answer that cites them.' },
             action: { title: 'No actions', body: 'RAG only answers with text.' },
             answer: { body: 'After 3 years at the company you get 2 days of leave on top of the Labour Code entitlement, so 22 or 28 days depending on your total length of service (Work regulations, § 12). You can work remotely up to 3 days a week; Tuesdays and Thursdays are office days (§ 7).' },
             verdict: { body: 'A specific answer from your own documents, with the source. Fast and cheap.' }
@@ -717,13 +725,15 @@ const T = {
       }
     },
     footer: 'Educational simulation. No AI model is called here; the company and the artists are fictional.',
+    shortcutsOn: 'Keyboard shortcuts: on', shortcutsOff: 'Keyboard shortcuts: off',
     langSwitch: 'PL', langSwitchLabel: 'Przełącz na polski'
   }
 };
 
 // ─── State ───
-const App = { lang: 'pl', scenarioId: 'general', step: 0, playing: false, timer: null };
+const App = { lang: 'pl', scenarioId: 'general', step: 0, playing: false, timer: null, shortcuts: true };
 try { const saved = localStorage.getItem(LANG_KEY); if (saved === 'pl' || saved === 'en') App.lang = saved; } catch {}
+try { if (localStorage.getItem(SHORTCUTS_KEY) === 'off') App.shortcuts = false; } catch {}
 
 // ─── DOM refs ───
 const $ = id => document.getElementById(id);
@@ -744,6 +754,7 @@ const progressLabel = $('progressLabel');
 const liveEl = $('live');
 const compareTable = $('compareTable');
 const chooseList = $('chooseList');
+const shortcutsBtn = $('shortcutsBtn');
 
 // ─── Helpers ───
 function t(key) { return T[App.lang][key]; }
@@ -774,11 +785,11 @@ function demoOnScreen() {
   return r.bottom > document.querySelector('.edu-header').getBoundingClientRect().bottom && r.top < innerHeight;
 }
 function stopPlay() { App.playing = false; clearTimeout(App.timer); App.timer = null; }
-function goTo(step) {
+function goTo(step, reveal = true) {
   App.step = Math.max(0, Math.min(PHASES.length, step));
   if (App.step === PHASES.length) stopPlay();
   render();
-  revealCurrentRow();
+  if (reveal) revealCurrentRow();
 }
 // Keep the row just revealed in view with the smallest scroll. Rows grow below the sticky controls, so Dalej never
 // moves under the cursor. Phones stack the row into three cells, so there the row starts right under the controls.
@@ -807,7 +818,7 @@ function userNext() { stopPlay(); next(); }
 function prev() { stopPlay(); goTo(App.step - 1); }
 function reset() { stopPlay(); goTo(0); }
 function tick() {
-  next();
+  goTo(App.step + 1, demoOnScreen()); // autoplay never pulls back a reader who scrolled away
   if (App.playing) App.timer = setTimeout(tick, AUTO_MS);
 }
 function togglePlay() {
@@ -822,6 +833,11 @@ function setScenario(id) {
   App.scenarioId = id;
   App.step = 0;
   buildMatrix();
+  render();
+}
+function toggleShortcuts() {
+  App.shortcuts = !App.shortcuts;
+  try { localStorage.setItem(SHORTCUTS_KEY, App.shortcuts ? 'on' : 'off'); } catch {}
   render();
 }
 function setLang(lang) {
@@ -950,10 +966,13 @@ function buildChoose() {
 }
 function build() { applyI18n(); buildLadder(); buildPicker(); buildMatrix(); buildCompare(); buildChoose(); }
 function render() {
+  const focused = document.activeElement;
   const total = PHASES.length;
   const status = App.step === 0 ? 'idle' : App.step === total ? 'done' : 'running';
   const phase = PHASES[App.step - 1] || null;
-  Object.assign(rootEl.dataset, { lang: App.lang, scenario: App.scenarioId, step: String(App.step), status, playing: String(App.playing) });
+  Object.assign(rootEl.dataset, { lang: App.lang, scenario: App.scenarioId, step: String(App.step), status, playing: String(App.playing), shortcuts: App.shortcuts ? 'on' : 'off' });
+  shortcutsBtn.textContent = t(App.shortcuts ? 'shortcutsOn' : 'shortcutsOff');
+  shortcutsBtn.setAttribute('aria-pressed', String(App.shortcuts));
   matrixEl.querySelectorAll('[data-phase]').forEach(node => {
     const index = PHASES.indexOf(node.dataset.phase) + 1;
     node.dataset.cell = index < App.step ? 'shown' : index === App.step ? 'current' : 'hidden';
@@ -964,12 +983,16 @@ function render() {
   scenarioPicker.querySelectorAll('.scenario-btn').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.scenarioId === App.scenarioId)));
   prevBtn.disabled = App.step === 0;
   nextBtn.disabled = App.step === total;
+  // A disabled button drops focus to <body>; hand it to the control that still makes sense.
+  if (focused === nextBtn && nextBtn.disabled) resetBtn.focus({ preventScroll: true });
+  if (focused === prevBtn && prevBtn.disabled) nextBtn.focus({ preventScroll: true });
   playBtn.textContent = t(App.playing ? 'pause' : 'play');
   playBtn.setAttribute('aria-pressed', String(App.playing));
   progressEl.setAttribute('aria-valuenow', String(App.step));
   progressFill.style.width = `${App.step / total * 100}%`;
   const label = status === 'idle' ? t('stepIdle') : `${fmt(t('stepOf'), { n: App.step, total })}: ${t('phases')[phase]}`;
   progressLabel.textContent = label;
+  progressEl.setAttribute('aria-valuetext', label);
   liveEl.textContent = status === 'done' ? `${label}. ${t('winner')}: ${t('ladder')[meta().winner].name}` : label;
 }
 
@@ -978,6 +1001,7 @@ prevBtn.addEventListener('click', prev);
 nextBtn.addEventListener('click', userNext);
 playBtn.addEventListener('click', togglePlay);
 resetBtn.addEventListener('click', reset);
+shortcutsBtn.addEventListener('click', toggleShortcuts);
 langBtn.addEventListener('click', () => setLang(App.lang === 'pl' ? 'en' : 'pl'));
 scenarioPicker.addEventListener('click', e => {
   const btn = e.target.closest('.scenario-btn');
@@ -990,8 +1014,11 @@ document.addEventListener('keydown', e => {
   // A focused button already handles Space/Enter natively; handling it here too would double-step.
   if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('button')) return;
   const key = e.key.toLowerCase();
+  // Arrows are not character keys, so they always work; Space and letters/digits obey the shortcuts switch (WCAG 2.1.4).
+  const isArrow = key === 'arrowright' || key === 'arrowleft';
+  if (!isArrow && (!App.shortcuts || e.shiftKey)) return;
   // Space and arrows step the demo only while it is on screen; elsewhere they keep scrolling the page.
-  if ((key === 'arrowright' || key === ' ' || key === 'arrowleft') && !demoOnScreen()) return;
+  if ((isArrow || key === ' ') && !demoOnScreen()) return;
   if (key === 'arrowright' || key === ' ') { e.preventDefault(); userNext(); }
   else if (key === 'arrowleft') { e.preventDefault(); prev(); }
   else if (key === 'r') reset();
@@ -1004,7 +1031,7 @@ chooseList.addEventListener('click', e => {
   const btn = e.target.closest('.choose-go');
   if (!btn) return;
   setScenario(btn.dataset.goScenario);
-  demoEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  demoEl.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   nextBtn.focus({ preventScroll: true });
 });
 
@@ -1012,8 +1039,6 @@ chooseList.addEventListener('click', e => {
 build();
 render();
 // ─── Reveal ───
-const FONT_WAIT_MS = 1500;
-const BRAND_FONTS = ['400 1em Outfit', '700 1em Outfit', '400 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "Roboto Mono"'];
 Promise.race([
   Promise.all(BRAND_FONTS.map(f => document.fonts.load(f).catch(() => null))),
   new Promise(r => setTimeout(r, FONT_WAIT_MS))

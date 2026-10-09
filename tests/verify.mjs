@@ -365,6 +365,113 @@ probe('a11y: focused controls show a solid ink focus outline', async page => {
   assert(o.style === 'solid' && o.width >= 2 && o.color === o.inkRgb, JSON.stringify(o));
 });
 
+probe('a11y: focus moves to a live control when Dalej or Wstecz becomes disabled', async page => {
+  await press(page, 'ArrowRight', 4);
+  await page.focus('#nextBtn');
+  await page.keyboard.press('Enter');
+  let id = await page.evaluate(() => document.activeElement.id);
+  assert(id === 'resetBtn', `after last Dalej focus is on "${id}"`);
+  await press(page, 'ArrowLeft', 4);
+  await page.focus('#prevBtn');
+  await page.keyboard.press('Enter');
+  id = await page.evaluate(() => document.activeElement.id);
+  assert(id === 'nextBtn', `after first Wstecz focus is on "${id}"`);
+});
+probe('stepper: autoplay does not pull the page back after the user scrolls away', async page => {
+  await page.keyboard.press('a');
+  await page.evaluate(() => document.querySelector('.choose').scrollIntoView());
+  await page.waitForTimeout(400);
+  // Track what the reader sees, not scrollY: scroll anchoring legitimately shifts scrollY as rows grow above.
+  const y0 = await page.evaluate(() => document.getElementById('chooseTitle').getBoundingClientRect().top);
+  await page.waitForTimeout(3000);
+  const r = await page.evaluate(() => ({ y: document.getElementById('chooseTitle').getBoundingClientRect().top, step: document.getElementById('app').dataset.step }));
+  assert(Number(r.step) >= 2, `autoplay stopped advancing (step ${r.step})`);
+  assert(Math.abs(r.y - y0) < 2, `reader's view moved: guide title ${y0} -> ${r.y}`);
+});
+probe('choose: example link lands with the demo title below the sticky header', async page => {
+  await page.click('#chooseList [data-lane="rag"] .choose-go');
+  await page.waitForTimeout(900);
+  const r = await page.evaluate(() => ({ title: document.getElementById('demoTitle').getBoundingClientRect().top, header: document.querySelector('.edu-header').getBoundingClientRect().bottom, focus: document.activeElement.id }));
+  assert(r.title >= r.header, `demo title at ${r.title} hidden under header ending at ${r.header}`);
+  assert(r.focus === 'nextBtn', `focus on "${r.focus}"`);
+});
+probe('keys: single-key shortcuts can be switched off and the choice persists', async page => {
+  await page.click('#shortcutsBtn');
+  await page.keyboard.press('3');
+  await page.keyboard.press('l');
+  let s = await appState(page);
+  assert(s.scenario === 'general' && s.lang === 'pl' && s.shortcuts === 'off', `shortcuts still active ${JSON.stringify(s)}`);
+  await page.keyboard.press('ArrowRight');
+  assert((await appState(page)).step === '1', 'arrow keys should keep working');
+  await page.reload();
+  await page.waitForFunction(() => document.getElementById('app')?.dataset.status);
+  s = await appState(page);
+  assert(s.shortcuts === 'off', 'shortcut setting not persisted');
+});
+probe('keys: Shift with a letter does not trigger a shortcut', async page => {
+  await page.keyboard.press('Shift+A');
+  await page.keyboard.press('Shift+L');
+  const s = await appState(page);
+  assert(s.playing === 'false' && s.lang === 'pl', JSON.stringify(s));
+});
+probe('a11y: controls are a plain group and the progress bar has a text value', async page => {
+  const r = await page.evaluate(() => ({ role: document.querySelector('.controls').getAttribute('role'), idle: document.getElementById('progress').getAttribute('aria-valuetext') }));
+  await page.keyboard.press('ArrowRight');
+  const text = await page.evaluate(() => document.getElementById('progress').getAttribute('aria-valuetext'));
+  assert(r.role === 'group', `controls role ${r.role}`);
+  assert(r.idle && text && text.includes('Krok 1 z 5'), `valuetext idle="${r.idle}" step1="${text}"`);
+});
+probe('a11y: small text on coloured fills reaches 4.5:1', async page => {
+  await page.keyboard.press('3');
+  await press(page, 'ArrowRight', 5);
+  const bad = await page.evaluate(() => {
+    const rgb = s => s.match(/[\d.]+/g).slice(0, 3).map(Number);
+    const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+    const out = [];
+    const check = (label, node, pseudo) => { const s = getComputedStyle(node, pseudo); const r = ratio(rgb(s.color), rgb(s.backgroundColor)); if (r < 4.5) out.push(`${label} ${r.toFixed(2)}`); };
+    document.querySelectorAll('.lane-chip, .loop-kind, .grade').forEach(n => check(n.className + ':' + (n.closest('[data-lane]')?.dataset.lane || ''), n));
+    document.querySelectorAll('.lane-head').forEach(n => check('lane-head:' + n.dataset.lane, n));
+    return out;
+  });
+  assert(bad.length === 0, bad.join(' | '));
+});
+probe('a11y: pending placeholder text reaches 4.5:1 on its sand cell', async page => {
+  const ok = await page.evaluate(() => {
+    const cell = document.querySelector('#matrix .cell[data-cell="hidden"]');
+    const p = cell.querySelector('.cell-placeholder');
+    const rgb = s => s.match(/[\d.]+/g).slice(0, 3).map(Number);
+    const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+    const [x, y] = [lum(rgb(getComputedStyle(p).color)), lum(rgb(getComputedStyle(cell).backgroundColor))].sort((a, b) => b - a);
+    return (x + 0.05) / (y + 0.05);
+  });
+  assert(ok >= 4.5, `placeholder contrast ${ok.toFixed(2)}`);
+});
+probe('data: RAG in the multi-step task is graded partial, not vague', async page => {
+  const r = await page.evaluate(() => ({ grade: SCENARIO_META.task.lanes.rag.grade, pl: T.pl.grades.partial, en: T.en.grades.partial }));
+  assert(r.grade === 'partial' && r.pl && r.en, JSON.stringify(r));
+});
+probe('copy: RAG company sources are not all called regulations', async page => {
+  const r = await page.evaluate(() => [T.pl, T.en].map(l => l.scenarios.company.lanes.rag.process.title + ' ' + l.scenarios.company.lanes.rag.process.body).join(' | '));
+  assert(!/fragmenty regulaminu|passages from the regulations/.test(r) && /FAQ/.test(r), r);
+});
+probe('stepper: language switch during autoplay stops it and keeps the step', async page => {
+  await page.keyboard.press('a');
+  await page.waitForTimeout(2800);
+  await page.click('#langBtn');
+  const s = await appState(page);
+  await page.waitForTimeout(3000);
+  const later = await appState(page);
+  assert(s.lang === 'en' && s.playing === 'false' && s.step === '2' && later.step === '2', `${JSON.stringify(s)} -> ${later.step}`);
+});
+probe('source: every constant is declared before Init', () => {
+  const html = readFileSync(INDEX, 'utf8');
+  const script = html.slice(html.lastIndexOf('<script>'));
+  const init = script.indexOf('// ─── Init ───');
+  const late = [...script.slice(init).matchAll(/\nconst ([A-Z_]+)\b/g)].map(m => m[1]);
+  assert(late.length === 0, `constants after Init: ${late}`);
+}, { static: true });
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));
