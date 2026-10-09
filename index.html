@@ -294,6 +294,26 @@ main > section { margin-block: var(--sp-12); }
 .cost dd { margin: 0; text-align: end; font-family: var(--font-mono); }
 .cost-bar { height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
 .cost-bar-fill { display: block; height: 100%; background: var(--lane); }
+/* ─── Ladder ─── */
+.ladder-list { list-style: none; padding: 0; margin: var(--sp-5) 0 var(--sp-3); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
+.ladder-step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
+.ladder-tagline { margin: var(--sp-3) 0 4px; font: 700 var(--body-lg) var(--font-display); }
+.ladder-adds { margin: 0 0 var(--sp-3); font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
+.ladder-analogy { margin: 0; color: var(--ink-2); }
+
+/* ─── Compare ─── */
+.table-wrap { overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: separate; border-spacing: 0; font: var(--body-sm)/1.5 var(--font-sans); }
+.compare-table th, .compare-table td { padding: var(--sp-3); text-align: start; vertical-align: top; border-bottom: 1px solid var(--line); }
+.compare-table tbody th { font-weight: 600; color: var(--ink); }
+.compare-table td { color: var(--ink-2); }
+
+/* ─── Choose ─── */
+.choose-list { list-style: none; padding: 0; margin: var(--sp-5) 0 0; display: grid; gap: var(--sp-3); counter-reset: q; }
+.choose-step { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); background: var(--paper-2); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); counter-increment: q; }
+.choose-q { margin: 0; font: 600 var(--body) var(--font-display); }
+.choose-q::before { content: counter(q) '. '; font-family: var(--font-mono); }
+.choose-go { display: inline-flex; align-items: center; gap: var(--sp-2); background: var(--surface); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px 6px 6px; font: 600 var(--caption) var(--font-sans); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -838,7 +858,40 @@ function buildMatrix() {
   ]);
   matrixEl.replaceChildren(...heads, ...rows);
 }
-function build() { applyI18n(); buildPicker(); buildMatrix(); }
+function buildLadder() {
+  const ladder = t('ladder');
+  ladderList.replaceChildren(...LANES.map(lane => el('li', { class: 'ladder-step', dataset: { lane } }, [
+    el('span', { class: 'lane-chip', text: ladder[lane].name }),
+    el('p', { class: 'ladder-tagline', text: ladder[lane].tagline }),
+    el('p', { class: 'ladder-adds', text: ladder[lane].adds }),
+    el('p', { class: 'ladder-analogy', text: ladder[lane].analogy })
+  ])));
+}
+function buildCompare() {
+  const ladder = t('ladder');
+  const head = el('thead', {}, [el('tr', {}, [
+    el('th', { scope: 'col', text: t('compareFeature') }),
+    ...LANES.map(lane => el('th', { scope: 'col', dataset: { lane } }, [el('span', { class: 'lane-chip', text: ladder[lane].name })]))
+  ])]);
+  const body = el('tbody', {}, t('compareRows').map(([label, ...values]) => el('tr', {}, [
+    el('th', { scope: 'row', text: label }),
+    ...values.map((value, i) => el('td', { dataset: { lane: LANES[i] }, text: value }))
+  ])));
+  compareTable.replaceChildren(el('caption', { class: 'sr-only', text: t('compareTitle') }), head, body);
+}
+function buildChoose() {
+  chooseList.replaceChildren(...t('choose').map(item => {
+    const scenarioId = SCENARIO_IDS.find(id => SCENARIO_META[id].winner === item.lane);
+    return el('li', { class: 'choose-step', dataset: { lane: item.lane } }, [
+      el('p', { class: 'choose-q', text: item.q }),
+      el('button', { type: 'button', class: 'choose-go', dataset: { goScenario: scenarioId } }, [
+        el('span', { class: 'lane-chip', text: t('ladder')[item.lane].name }),
+        el('span', { text: t('chooseShow') })
+      ])
+    ]);
+  }));
+}
+function build() { applyI18n(); buildLadder(); buildPicker(); buildMatrix(); buildCompare(); buildChoose(); }
 function render() {
   const total = PHASES.length;
   const status = App.step === 0 ? 'idle' : App.step === total ? 'done' : 'running';
@@ -884,6 +937,13 @@ document.addEventListener('keydown', e => {
   else if (key === 'a') togglePlay();
   else if (key === 'l') setLang(App.lang === 'pl' ? 'en' : 'pl');
   else if (['1', '2', '3'].includes(key)) setScenario(SCENARIO_IDS[Number(key) - 1]);
+});
+
+chooseList.addEventListener('click', e => {
+  const btn = e.target.closest('.choose-go');
+  if (!btn) return;
+  setScenario(btn.dataset.goScenario);
+  demoEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 // ─── Init ───

@@ -236,6 +236,23 @@ probe('cost: displayed tokens match the data and bars grow chat < RAG < agent', 
   assert(rows[2].width > rows[1].width && rows[1].width > rows[0].width, `bars not ordered: ${rows.map(r => r.width)}`);
 });
 
+probe('ladder: three cards, each saying what it adds', async page => {
+  const cards = await page.evaluate(() => [...document.querySelectorAll('#ladderList .ladder-step')].map(c => `${c.dataset.lane}:${c.querySelector('.ladder-adds')?.textContent || ''}`));
+  assert(cards.length === 3 && cards[1].includes('+') && cards[2].includes('+'), cards.join(' | '));
+});
+probe('compare: table has three lane columns and full rows', async page => {
+  const shape = await page.evaluate(() => ({ cols: document.querySelectorAll('#compareTable thead th').length, rows: [...document.querySelectorAll('#compareTable tbody tr')].map(r => r.children.length) }));
+  assert(shape.cols === 4 && shape.rows.length === 8 && shape.rows.every(n => n === 4), JSON.stringify(shape));
+});
+probe('choose: each guide answer opens the scenario that approach wins', async page => {
+  for (const lane of ['agent', 'rag', 'chat']) {
+    await page.click(`#chooseList [data-lane="${lane}"] .choose-go`);
+    const s = await appState(page);
+    const winner = await page.evaluate(id => SCENARIO_META[id].winner, s.scenario);
+    assert(winner === lane && s.step === '0', `${lane} -> ${s.scenario}`);
+  }
+});
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));
