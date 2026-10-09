@@ -215,6 +215,7 @@ body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-
   --shell-max: 1100px;
   --matrix-max: 1360px;
   --row-head-w: 11rem;
+  --header-h: 81px; /* 64px logo + 2 x --sp-2 padding + 1px rule */
 }
 [data-lane="chat"]  { --lane: var(--lane-chat);  --lane-ink: var(--lane-chat-ink); }
 [data-lane="rag"]   { --lane: var(--lane-rag);   --lane-ink: var(--lane-rag-ink); }
@@ -238,7 +239,7 @@ main > section { margin-block: var(--sp-12); }
 .lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 /* ─── Controls ─── */
-.controls { position: sticky; bottom: 0; z-index: 2; background: var(--paper); border-top: 1px solid var(--line); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: var(--sp-5) auto 0; padding-inline: var(--sp-5); box-sizing: border-box; }
+.controls { position: sticky; top: var(--header-h); z-index: 2; background: var(--paper); border-bottom: 1px solid var(--line); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: 0 auto var(--sp-4); padding-inline: var(--sp-5); box-sizing: border-box; }
 .btn { border: 0; border-radius: var(--r-pill); padding: 10px 20px; font: 600 var(--body-sm) var(--font-sans); cursor: pointer; transition: background-color .2s ease; }
 .btn-primary { background: var(--yellow); color: var(--yellow-ink); }
 .btn-secondary { background: var(--paper-2); color: var(--ink); }
@@ -273,7 +274,6 @@ main > section { margin-block: var(--sp-12); }
 .row-head { display: flex; gap: var(--sp-2); align-items: flex-start; padding: var(--sp-4) var(--sp-3); background: var(--paper-2); color: var(--ink); border-radius: var(--r-md); font: 600 var(--body-sm)/1.4 var(--font-display); transition: background-color .25s ease; }
 .row-num { font: 600 var(--caption) var(--font-mono); background: var(--surface); border-radius: var(--r-pill); padding: 0 8px; }
 .row-head[data-cell="current"] { background: var(--yellow); color: var(--yellow-ink); }
-.row-head, .cell { scroll-margin-top: 96px; scroll-margin-bottom: 120px; }
 .cell { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4); box-shadow: var(--shadow-sm); font: var(--body-sm)/1.5 var(--font-sans); }
 .cell[data-cell="hidden"] { background: var(--paper-2); border-style: dashed; box-shadow: none; }
 .cell[data-cell="hidden"] .cell-content { display: none; }
@@ -333,7 +333,6 @@ main > section { margin-block: var(--sp-12); }
   .row-head { margin-top: var(--sp-3); }
   .cell::before { content: attr(data-lane-name); display: inline-block; margin-bottom: var(--sp-2); background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 2px 10px; font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
   .loop-step { grid-template-columns: minmax(0, 1fr); }
-  .controls { position: sticky; bottom: 0; background: var(--paper); padding-block: var(--sp-3); z-index: 2; }
   .progress { flex-basis: 100%; order: 5; }
 }
 </style>
@@ -366,7 +365,6 @@ main > section { margin-block: var(--sp-12); }
           <blockquote id="question" class="question"></blockquote>
         </figure>
       </div>
-      <div id="matrix" class="matrix"></div>
       <div class="controls" role="toolbar" aria-labelledby="demoTitle">
         <button id="prevBtn" class="btn btn-secondary" type="button" data-i18n="prev"></button>
         <button id="nextBtn" class="btn btn-primary" type="button" data-i18n="next"></button>
@@ -375,6 +373,7 @@ main > section { margin-block: var(--sp-12); }
         <div id="progress" class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="progressLabel"><span id="progressFill" class="progress-fill"></span></div>
         <span id="progressLabel" class="progress-label"></span>
       </div>
+      <div id="matrix" class="matrix"></div>
       <p class="kbd-hint edu-caption shell" data-i18n="kbdHint"></p>
       <p class="cost-note edu-caption shell" data-i18n="costNote"></p>
       <p id="live" class="sr-only" aria-live="polite"></p>
@@ -398,6 +397,7 @@ const PHASES = ['source', 'process', 'action', 'answer', 'verdict'];
 const SCENARIO_IDS = ['general', 'company', 'task'];
 const AUTO_MS = 2600;
 const PHONE_QUERY = '(max-width: 768px)';
+const REVEAL_GAP_PX = 12;
 const LANG_KEY = 'chat-rag-language';
 const PRICE_PLN_PER_MTOK = { in: 5, out: 20 };
 const FLOW = {
@@ -768,14 +768,23 @@ function goTo(step) {
   render();
   revealCurrentRow();
 }
-// Keep the row just revealed in view: desktop keeps the whole row above the sticky controls,
-// phones (row stacked into three cells) start the row at its heading under the sticky header.
+// Keep the row just revealed in view with the smallest scroll. Rows grow below the sticky controls, so Dalej never
+// moves under the cursor. Phones stack the row into three cells, so there the row starts right under the controls.
 function revealCurrentRow() {
-  const cells = matrixEl.querySelectorAll('.cell[data-cell="current"]');
+  const cells = [...matrixEl.querySelectorAll('.cell[data-cell="current"]')];
   if (!cells.length) return;
   const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
-  if (matchMedia(PHONE_QUERY).matches) matrixEl.querySelector('.row-head[data-cell="current"]').scrollIntoView({ block: 'start', behavior });
-  else cells[cells.length - 1].scrollIntoView({ block: 'nearest', behavior });
+  const rowHead = matrixEl.querySelector('.row-head[data-cell="current"]');
+  const rects = [rowHead, ...cells].map(node => node.getBoundingClientRect());
+  const top = Math.min(...rects.map(r => r.top));
+  const bottom = Math.max(...rects.map(r => r.bottom));
+  // Where the controls end once stuck under the header (they only stick after the page scrolls past them).
+  const topBound = document.querySelector('.edu-header').getBoundingClientRect().bottom + document.querySelector('.controls').offsetHeight + REVEAL_GAP_PX;
+  let delta = 0;
+  if (matchMedia(PHONE_QUERY).matches) delta = top - topBound;
+  else if (bottom > innerHeight - REVEAL_GAP_PX) delta = Math.min(bottom - innerHeight + REVEAL_GAP_PX, top - topBound);
+  else if (top < topBound) delta = top - topBound;
+  if (Math.abs(delta) > 1) scrollBy({ top: delta, behavior });
 }
 function next() { goTo(App.step + 1); }
 function userNext() { stopPlay(); next(); }

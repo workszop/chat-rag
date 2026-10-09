@@ -290,7 +290,7 @@ probe('flow: chip labels are readable (text colour differs from chip fill)', asy
   const same = await page.evaluate(() => [...document.querySelectorAll('.flow-node')].filter(n => { const s = getComputedStyle(n); return s.color === s.backgroundColor; }).map(n => `${n.dataset.lane}:${n.dataset.node}`));
   assert(same.length === 0, `invisible chip text: ${same}`);
 });
-probe('stepper: the revealed row is on screen above the controls', async page => {
+probe('stepper: the revealed row is on screen below the controls', async page => {
   for (let i = 0; i < 5; i++) {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(700);
@@ -301,19 +301,28 @@ probe('stepper: the revealed row is on screen above the controls', async page =>
       const bottom = Math.max(...cells.map(c => c.getBoundingClientRect().bottom));
       return { top, bottom, controlsTop: controls.top, controlsBottom: controls.bottom, vh: innerHeight };
     });
-    assert(r.controlsBottom <= r.vh && r.controlsTop >= 0, `step ${i + 1}: controls off screen ${JSON.stringify(r)}`);
-    assert(r.top >= 0 && r.bottom <= r.controlsTop + 1, `step ${i + 1}: row not visible ${JSON.stringify(r)}`);
+    assert(r.controlsTop >= 0 && r.controlsBottom <= r.vh, `step ${i + 1}: controls off screen ${JSON.stringify(r)}`);
+    assert(r.top >= r.controlsBottom - 1 && r.bottom <= r.vh, `step ${i + 1}: row not visible ${JSON.stringify(r)}`);
   }
 });
-
 probe('mobile: each step scrolls to the new row heading', async page => {
   for (let i = 0; i < 5; i++) {
     await page.keyboard.press('ArrowRight');
     await page.waitForTimeout(700);
-    const top = await page.evaluate(() => document.querySelector('#matrix .row-head[data-cell="current"]').getBoundingClientRect().top);
-    assert(top >= 60 && top <= 200, `step ${i + 1}: row heading at ${top}px`);
+    const r = await page.evaluate(() => ({ top: document.querySelector('#matrix .row-head[data-cell="current"]').getBoundingClientRect().top, controls: document.querySelector('.controls').getBoundingClientRect().bottom }));
+    assert(r.top >= r.controls && r.top <= r.controls + 40, `step ${i + 1}: row heading at ${r.top}px, controls end at ${r.controls}px`);
   }
 }, { viewport: MOBILE });
+
+probe('stepper: Dalej stays under the cursor when the new row already fits', async page => {
+  await page.evaluate(() => document.getElementById('demo').scrollIntoView());
+  await page.waitForTimeout(300);
+  const before = await page.evaluate(() => document.getElementById('nextBtn').getBoundingClientRect().top);
+  await page.click('#nextBtn');
+  await page.waitForTimeout(700);
+  const after = await page.evaluate(() => document.getElementById('nextBtn').getBoundingClientRect().top);
+  assert(Math.abs(after - before) < 2, `Dalej moved from ${before} to ${after}`);
+}, { viewport: { width: 1920, height: 1078 } });
 
 // ─── Run ───
 const filter = process.argv[2] || '';
