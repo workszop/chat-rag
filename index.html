@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="favicon.svg?v=202610090750">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=202610090750">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=202610090750">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=202610090750">
 <title>Czat, RAG czy agent?</title>
 <!-- edustyl <head> snippet. Paste it into <head> before your stylesheet / <style>.
      Fonts load here with <link>, never with @import in CSS: @import chains the requests
@@ -315,6 +319,19 @@ main > section { margin-block: var(--sp-12); }
 .choose-q::before { content: counter(q) '. '; font-family: var(--font-mono); }
 .choose-go { display: inline-flex; align-items: center; gap: var(--sp-2); background: var(--surface); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px 6px 6px; font: 600 var(--caption) var(--font-sans); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* ─── Phone ─── */
+@media (max-width: 768px) {
+  .shell, .matrix, .controls { padding-inline: var(--sp-4); }
+  .ladder-list { grid-template-columns: minmax(0, 1fr); }
+  .matrix { grid-template-columns: minmax(0, 1fr); }
+  .matrix-corner, .lane-head { display: none; }
+  .row-head[data-cell="hidden"], .cell[data-cell="hidden"] { display: none; }
+  .row-head { margin-top: var(--sp-3); }
+  .cell::before { content: attr(data-lane-name); display: inline-block; margin-bottom: var(--sp-2); background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 2px 10px; font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
+  .loop-step { grid-template-columns: minmax(0, 1fr); }
+  .controls { position: sticky; bottom: 0; background: var(--paper); padding-block: var(--sp-3); z-index: 2; }
+  .progress { flex-basis: 100%; order: 5; }
+}
 </style>
 </head>
 <body class="edu">

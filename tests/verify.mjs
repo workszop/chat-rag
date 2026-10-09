@@ -253,6 +253,39 @@ probe('choose: each guide answer opens the scenario that approach wins', async p
   }
 });
 
+probe('mobile: no horizontal page scroll in any scenario', async page => {
+  for (const key of ['1', '2', '3']) {
+    await page.keyboard.press(key);
+    await press(page, 'ArrowRight', 5);
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    assert(overflow <= 0, `scenario ${key} overflows by ${overflow}px`);
+  }
+}, { viewport: MOBILE });
+probe('mobile: hidden rows collapse and every visible cell names its lane', async page => {
+  await page.keyboard.press('ArrowRight');
+  const info = await page.evaluate(() => ({
+    visibleCells: [...document.querySelectorAll('#matrix .cell')].filter(c => c.offsetParent !== null).length,
+    laneHeads: [...document.querySelectorAll('.lane-head')].filter(c => c.offsetParent !== null).length,
+    labels: [...document.querySelectorAll('#matrix .cell[data-cell="current"]')].map(c => getComputedStyle(c, '::before').content)
+  }));
+  assert(info.visibleCells === 3 && info.laneHeads === 0, JSON.stringify(info));
+  assert(info.labels.every(l => l && l !== 'none' && l !== 'normal'), `lane labels missing: ${info.labels}`);
+}, { viewport: MOBILE });
+probe('source: no Tailwind and no raw colours outside the token block', () => {
+  const html = readFileSync(INDEX, 'utf8');
+  assert(!html.includes('cdn.tailwindcss.com'), 'Tailwind still loaded');
+  const rest = html.replace(/<style id="edu-tokens">[\s\S]*?<\/style>/, '');
+  const hex = rest.match(/#[0-9a-fA-F]{3,8}\b/g) || [];
+  assert(hex.length === 0, `raw hex outside tokens: ${hex.slice(0, 5)}`);
+  assert(!/rgba?\(/.test(rest), 'raw rgb() outside tokens');
+  assert(!rest.includes('\u2014'), 'em-dash in source');
+}, { static: true });
+probe('files: unused PNG diagrams removed and README written', () => {
+  const left = ['agent.png', 'chat.png', 'rag.png'].filter(f => existsSync(resolve(ROOT, f)));
+  assert(left.length === 0, `still present: ${left}`);
+  assert(readFileSync(resolve(ROOT, 'README.md'), 'utf8').includes('node tests/verify.mjs'), 'README lacks verify instructions');
+}, { static: true });
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));
