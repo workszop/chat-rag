@@ -70,6 +70,68 @@ probe('brand: header uses the ink edulab mark', () => {
   assert(md5 === INK_MARK_MD5, `logo md5 ${md5}`);
 }, { static: true });
 
+probe('data: every scenario has text for every lane and phase', async page => {
+  const missing = await page.evaluate(() => {
+    const out = [];
+    for (const lang of ['pl', 'en']) for (const id of SCENARIO_IDS) {
+      const s = T[lang].scenarios && T[lang].scenarios[id];
+      if (!s || !s.question || !s.tab || !s.hint) { out.push(`${lang}/${id}`); continue; }
+      for (const lane of LANES) for (const phase of PHASES) {
+        const c = s.lanes[lane] && s.lanes[lane][phase];
+        if (!c || !c.body || (!['answer', 'verdict'].includes(phase) && !c.title)) out.push(`${lang}/${id}/${lane}/${phase}`);
+      }
+    }
+    return out;
+  });
+  assert(missing.length === 0, `missing: ${missing.join(', ')}`);
+});
+probe('data: one best grade per scenario and it is the winner', async page => {
+  const bad = await page.evaluate(() => SCENARIO_IDS.filter(id => {
+    const m = SCENARIO_META[id];
+    const best = LANES.filter(l => m.lanes[l].grade === 'best');
+    return best.length !== 1 || best[0] !== m.winner;
+  }));
+  assert(bad.length === 0, `bad: ${bad}`);
+});
+probe('data: each approach wins exactly one scenario', async page => {
+  const winners = await page.evaluate(() => SCENARIO_IDS.map(id => SCENARIO_META[id].winner).sort().join(','));
+  assert(winners === 'agent,chat,rag', `winners ${winners}`);
+});
+probe('data: chat is cheapest and agent most expensive everywhere', async page => {
+  const bad = await page.evaluate(() => SCENARIO_IDS.filter(id => {
+    const c = l => SCENARIO_META[id].lanes[l].cost;
+    const tok = l => c(l).in + c(l).out;
+    return !(tok('chat') < tok('rag') && tok('rag') < tok('agent') && c('chat').seconds < c('rag').seconds && c('rag').seconds < c('agent').seconds);
+  }));
+  assert(bad.length === 0, `ordering broken in ${bad}`);
+});
+probe('data: agent loop kinds match loop texts', async page => {
+  const bad = await page.evaluate(() => {
+    const out = [];
+    for (const id of SCENARIO_IDS) {
+      const kinds = SCENARIO_META[id].lanes.agent.loop;
+      for (const lang of ['pl', 'en']) {
+        const texts = T[lang].scenarios[id].lanes.agent.process.loop;
+        if (!kinds || !texts || kinds.length !== texts.length || kinds[0] !== 'plan') out.push(`${lang}/${id}`);
+      }
+    }
+    return out;
+  });
+  assert(bad.length === 0, `loop mismatch: ${bad}`);
+});
+probe('data: use states are valid and only the agent ever acts', async page => {
+  const bad = await page.evaluate(() => {
+    const out = [];
+    for (const id of SCENARIO_IDS) for (const lane of LANES) {
+      const use = SCENARIO_META[id].lanes[lane].use;
+      for (const phase of ['source', 'process', 'action']) if (!['used', 'unused', 'unavailable'].includes(use[phase])) out.push(`${id}/${lane}/${phase}`);
+      if (lane !== 'agent' && use.action !== 'unavailable') out.push(`${id}/${lane} acts`);
+    }
+    return out;
+  });
+  assert(bad.length === 0, bad.join(', '));
+});
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));

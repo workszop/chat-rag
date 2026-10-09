@@ -316,6 +316,32 @@ const FLOW_HIGHLIGHT = {
   rag:   { source: 'docs', process: 'model', action: null, answer: 'answer', verdict: null },
   agent: { source: 'tools', process: 'loop', action: 'tools', answer: 'answer', verdict: null }
 };
+const SCENARIO_META = {
+  general: {
+    winner: 'chat',
+    lanes: {
+      chat:  { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'best',     cost: { in: 30,   out: 90,  seconds: 2 } },
+      rag:   { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'overkill', cost: { in: 2100, out: 95,  seconds: 4 } },
+      agent: { use: { source: 'used', process: 'used', action: 'unused' },      grade: 'overkill', cost: { in: 9400, out: 620, seconds: 14 }, loop: ['plan', 'tool', 'reflect', 'reflect'] }
+    }
+  },
+  company: {
+    winner: 'rag',
+    lanes: {
+      chat:  { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'weak',     cost: { in: 45,    out: 110, seconds: 2 } },
+      rag:   { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'best',     cost: { in: 1900,  out: 120, seconds: 4 } },
+      agent: { use: { source: 'used', process: 'used', action: 'unused' },      grade: 'overkill', cost: { in: 10800, out: 640, seconds: 16 }, loop: ['plan', 'tool', 'reflect', 'tool', 'reflect'] }
+    }
+  },
+  task: {
+    winner: 'agent',
+    lanes: {
+      chat:  { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'fail', cost: { in: 50,    out: 80,   seconds: 2 } },
+      rag:   { use: { source: 'used', process: 'used', action: 'unavailable' }, grade: 'weak', cost: { in: 1300,  out: 95,   seconds: 4 } },
+      agent: { use: { source: 'used', process: 'used', action: 'used' },        grade: 'best', cost: { in: 16500, out: 1050, seconds: 28 }, loop: ['plan', 'tool', 'reflect', 'tool', 'reflect', 'tool', 'reflect'] }
+    }
+  }
+};
 const T = {
   pl: {
     docTitle: 'Czat, RAG czy agent?',
@@ -368,6 +394,89 @@ const T = {
       { q: 'Wystarczy wiedza ogólna: wyjaśnienie, tekst, tłumaczenie?', lane: 'chat' }
     ],
     chooseShow: 'Zobacz przykład',
+    scenarios: {
+      general: {
+        tab: 'Wiedza ogólna', hint: 'Wystarczy czat',
+        question: 'Wyjaśnij prostymi słowami, czym jest inflacja, i podaj przykład z życia.',
+        lanes: {
+          chat: {
+            source: { title: 'Pamięć modelu', body: 'Model zna to pojęcie z danych treningowych. Nie musi niczego szukać.' },
+            process: { title: 'Jedno przejście', body: 'Od razu pisze odpowiedź, słowo po słowie.' },
+            action: { title: 'Brak działań', body: 'Czat odpowiada wyłącznie tekstem.' },
+            answer: { body: 'Inflacja to sytuacja, w której ceny rosną i za te same pieniądze kupujesz mniej. Przykład: rok temu za 20 zł można było kupić 5 bochenków chleba, a dziś tylko 4.' },
+            verdict: { body: 'Szybko, tanio i poprawnie. Do takich pytań czat w zupełności wystarczy.' }
+          },
+          rag: {
+            source: { title: 'Baza dokumentów', body: 'Szuka w bazie fragmentów o inflacji. Znajduje definicje, których model i tak nie potrzebował.', items: ['Podręcznik ekonomii, rozdz. 4: Inflacja', 'Słownik pojęć finansowych: hasło „inflacja”'] },
+            process: { title: 'Pytanie + znalezione fragmenty', body: 'Dokleja do pytania ok. 2000 tokenów kontekstu i dopiero wtedy pisze odpowiedź.' },
+            action: { title: 'Brak działań', body: 'RAG odpowiada wyłącznie tekstem.' },
+            answer: { body: 'Inflacja to ogólny wzrost cen, przez który pieniądz traci siłę nabywczą (Podręcznik ekonomii, rozdz. 4). Przykład: za 20 zł kupisz dziś mniej chleba niż rok temu.' },
+            verdict: { body: 'Odpowiedź jest dobra, ale wyszukiwanie niczego nie wniosło. Kosztowało więcej i trwało dłużej.' }
+          },
+          agent: {
+            source: { title: 'Pamięć modelu + narzędzia', body: 'Może sięgnąć po wyszukiwarkę, jeśli uzna, że to potrzebne.' },
+            process: { title: 'Pętla: plan, narzędzie, sprawdzenie', body: 'Rozbija pytanie na kroki i wykonuje je po kolei.', loop: ['Zdefiniuj pojęcie, dobierz przykład, sprawdź poprawność.', 'Wyszukaj definicję inflacji na stronach NBP i GUS.', 'Źródła zgadzają się z tym, co model już wiedział.', 'Przykład jest prosty i zrozumiały. Można odpowiadać.'] },
+            action: { title: 'Brak działań', body: 'Nic nie trzeba było zmieniać poza rozmową.' },
+            answer: { body: 'Inflacja to wzrost cen, przez który pieniądz traci wartość: za 20 zł kupisz dziś 4 bochenki chleba zamiast 5 rok temu (definicja zgodna z NBP).' },
+            verdict: { body: 'Wynik taki sam jak w czacie, ale po kilku krokach, z wielokrotnie większą liczbą tokenów i dłuższym czekaniem.' }
+          }
+        }
+      },
+      company: {
+        tab: 'Dokumenty firmy', hint: 'Tu wygrywa RAG',
+        question: 'Ile dni urlopu przysługuje mi po 3 latach pracy w naszej firmie i ile dni w tygodniu mogę pracować zdalnie?',
+        lanes: {
+          chat: {
+            source: { title: 'Pamięć modelu', body: 'Zna Kodeks pracy, ale nie zna regulaminu Twojej firmy.' },
+            process: { title: 'Jedno przejście', body: 'Odpowiada od razu, na podstawie ogólnej wiedzy.' },
+            action: { title: 'Brak działań', body: 'Czat odpowiada wyłącznie tekstem.' },
+            answer: { body: 'Według Kodeksu pracy przysługuje Ci 20 dni urlopu przy stażu poniżej 10 lat albo 26 dni przy stażu co najmniej 10 lat (wlicza się też okres nauki). Zasady pracy zdalnej ustala pracodawca, więc sprawdź regulamin lub zapytaj dział kadr.' },
+            verdict: { body: 'Brzmi rzeczowo, ale to odpowiedź ogólna. Czat nie zna dodatkowych dni urlopu ani zasad pracy zdalnej w Twojej firmie.' }
+          },
+          rag: {
+            source: { title: 'Dokumenty firmy', body: 'Znajduje w bazie 3 pasujące fragmenty.', items: ['Regulamin pracy 2026, § 12: Urlopy', 'Regulamin pracy 2026, § 7: Praca zdalna', 'FAQ działu kadr: staż pracy'] },
+            process: { title: 'Pytanie + 3 fragmenty regulaminu', body: 'Dokleja do pytania ok. 1800 tokenów z regulaminu i pisze odpowiedź z odwołaniem do źródeł.' },
+            action: { title: 'Brak działań', body: 'RAG odpowiada wyłącznie tekstem.' },
+            answer: { body: 'Po 3 latach pracy w firmie dostajesz 2 dni urlopu ponad wymiar z Kodeksu pracy, czyli 22 albo 28 dni, zależnie od ogólnego stażu (Regulamin pracy, § 12). Zdalnie możesz pracować do 3 dni w tygodniu, a we wtorki i czwartki pracujemy w biurze (§ 7).' },
+            verdict: { body: 'Konkretna odpowiedź z Twoich dokumentów, ze wskazaniem źródła. Szybko i tanio.' }
+          },
+          agent: {
+            source: { title: 'Dokumenty firmy + narzędzia', body: 'Przeszukuje bazę dokumentów i może sprawdzić inne systemy, np. komunikaty kadr.' },
+            process: { title: 'Pętla: plan, narzędzie, sprawdzenie', body: 'Szuka odpowiedzi, a potem upewnia się, że regulamin jest aktualny.', loop: ['Znajdź zasady urlopu i pracy zdalnej, sprawdź, czy nie było zmian.', 'Przeszukaj dokumenty firmy: urlop, praca zdalna.', 'Mam § 7 i § 12. Trzeba jeszcze sprawdzić zmiany.', 'Przejrzyj komunikaty działu kadr z ostatnich 6 miesięcy.', 'Brak zmian. Regulamin jest aktualny.'] },
+            action: { title: 'Brak działań', body: 'Nic nie trzeba było zmieniać poza rozmową.' },
+            answer: { body: '22 albo 28 dni urlopu (2 dni ponad Kodeks pracy, § 12) i do 3 dni pracy zdalnej w tygodniu, wtorki i czwartki w biurze (§ 7). W ostatnich 6 miesiącach regulamin się nie zmienił.' },
+            verdict: { body: 'Ta sama odpowiedź co w RAG, plus sprawdzenie zmian. Kosztuje kilka razy więcej i trwa dłużej.' }
+          }
+        }
+      },
+      task: {
+        tab: 'Zadanie wielokrokowe', hint: 'Potrzebny agent',
+        question: 'Sprawdź moich najczęściej słuchanych wykonawców z tego miesiąca, znajdź ich koncerty w Warszawie i dodaj daty do mojego kalendarza.',
+        lanes: {
+          chat: {
+            source: { title: 'Pamięć modelu', body: 'Nie zna Twojej historii słuchania ani kalendarza.' },
+            process: { title: 'Jedno przejście', body: 'Może tylko opisać, co zrobić samodzielnie.' },
+            action: { title: 'Brak dostępu', body: 'Nie połączy się ze Spotify ani z kalendarzem.' },
+            answer: { body: 'Nie mam dostępu do Twojej historii słuchania ani do kalendarza. Sprawdź statystyki w aplikacji muzycznej, poszukaj koncertów w serwisie biletowym i dodaj wydarzenia do kalendarza samodzielnie.' },
+            verdict: { body: 'Czat daje tylko instrukcję. Zadanie wymaga Twoich danych i działań w kilku serwisach.' }
+          },
+          rag: {
+            source: { title: 'Baza dokumentów', body: 'Znajduje listę koncertów, ale nie wie, kogo słuchasz.', items: ['Koncerty w Warszawie, listopad i grudzień 2026'] },
+            process: { title: 'Pytanie + lista koncertów', body: 'Dokleja listę koncertów do pytania i pisze odpowiedź.' },
+            action: { title: 'Brak dostępu', body: 'Nie doda wydarzeń do kalendarza.' },
+            answer: { body: 'W bazie są koncerty w Warszawie, m.in. w Torwarze, Progresji i Stodole. Nie wiem jednak, kogo słuchasz, i nie mogę dodać wydarzeń do Twojego kalendarza.' },
+            verdict: { body: 'Częściowo: znalazł koncerty, ale nie zna Twojego gustu i nie doda ich do kalendarza.' }
+          },
+          agent: {
+            source: { title: 'Twoje konta przez narzędzia', body: 'Łączy się ze Spotify, serwisem biletowym i kalendarzem przez ich API.' },
+            process: { title: 'Pętla: plan, narzędzie, sprawdzenie', body: 'Wykonuje zadanie krok po kroku i sprawdza każdy wynik.', loop: ['Pobierz top wykonawców, znajdź koncerty, dodaj do kalendarza, sprawdź.', 'Spotify: 10 najczęściej słuchanych wykonawców z tego miesiąca.', 'Mam listę 10 wykonawców. Szukam ich koncertów.', 'Serwis biletowy: koncerty tych wykonawców w Warszawie.', 'Pasują 3 koncerty. Dodaję je do kalendarza.', 'Kalendarz Google: 3 wydarzenia z przypomnieniem.', 'Wszystkie 3 wydarzenia są w kalendarzu.'] },
+            action: { title: 'Dodał 3 wydarzenia do kalendarza', body: 'Z adresem sali, linkiem do biletów i przypomnieniem.', items: ['Nocne Tramwaje: 12 grudnia, Torwar', 'Biały Szum: 9 stycznia, Progresja', 'Mgła nad Wisłą: 21 lutego, Stodoła'] },
+            answer: { body: 'Gotowe. Znaleziono 3 koncerty Twoich ulubionych wykonawców w Warszawie i dodano je do kalendarza z przypomnieniem tydzień i dzień wcześniej.' },
+            verdict: { body: 'Tylko agent łączy dane z kilku serwisów i wykonuje działanie w Twoim imieniu. To ma swoją cenę: najwięcej tokenów i najdłuższy czas.' }
+          }
+        }
+      }
+    },
     footer: 'Symulacja edukacyjna. Żaden model AI nie jest tu wywoływany, a firma i wykonawcy są fikcyjni.',
     langSwitch: 'EN', langSwitchLabel: 'Switch to English'
   },
@@ -422,6 +531,89 @@ const T = {
       { q: 'Is general knowledge enough: an explanation, a text, a translation?', lane: 'chat' }
     ],
     chooseShow: 'See the example',
+    scenarios: {
+      general: {
+        tab: 'General knowledge', hint: 'Chat is enough',
+        question: 'Explain in plain words what inflation is, with an everyday example.',
+        lanes: {
+          chat: {
+            source: { title: 'Model memory', body: 'The model learned this concept during training. It does not need to look anything up.' },
+            process: { title: 'Single pass', body: 'It writes the answer straight away, word by word.' },
+            action: { title: 'No actions', body: 'A chat only answers with text.' },
+            answer: { body: 'Inflation is when prices rise, so the same money buys you less. Example: a year ago 20 zł bought 5 loaves of bread, today it buys 4.' },
+            verdict: { body: 'Fast, cheap and correct. For questions like this a chat is all you need.' }
+          },
+          rag: {
+            source: { title: 'Document base', body: 'It searches the base for passages on inflation and finds definitions the model did not need anyway.', items: ['Economics textbook, ch. 4: Inflation', 'Glossary of financial terms: “inflation”'] },
+            process: { title: 'Question + retrieved passages', body: 'It adds about 2000 tokens of context to the question before writing the answer.' },
+            action: { title: 'No actions', body: 'RAG only answers with text.' },
+            answer: { body: 'Inflation is a general rise in prices that reduces the purchasing power of money (Economics textbook, ch. 4). Example: 20 zł buys less bread today than a year ago.' },
+            verdict: { body: 'A good answer, but the search added nothing. It cost more and took longer.' }
+          },
+          agent: {
+            source: { title: 'Model memory + tools', body: 'It can reach for web search if it decides that helps.' },
+            process: { title: 'Loop: plan, tool, check', body: 'It breaks the question into steps and runs them one by one.', loop: ['Define the term, pick an example, check it is correct.', 'Search for the definition of inflation on central bank and statistics office sites.', 'The sources match what the model already knew.', 'The example is simple and clear. Ready to answer.'] },
+            action: { title: 'No actions', body: 'Nothing outside the conversation needed changing.' },
+            answer: { body: 'Inflation is a rise in prices that makes money lose value: 20 zł buys 4 loaves of bread today instead of 5 a year ago (in line with the central bank definition).' },
+            verdict: { body: 'Same result as the chat, but after several steps, with many times more tokens and a longer wait.' }
+          }
+        }
+      },
+      company: {
+        tab: 'Company documents', hint: 'RAG wins here',
+        question: 'How many days of annual leave do I get after 3 years at our company, and how many days a week can I work remotely?',
+        lanes: {
+          chat: {
+            source: { title: 'Model memory', body: 'It knows the Polish Labour Code, but not your company rules.' },
+            process: { title: 'Single pass', body: 'It answers straight away from general knowledge.' },
+            action: { title: 'No actions', body: 'A chat only answers with text.' },
+            answer: { body: 'Under the Polish Labour Code you get 20 days of leave with less than 10 years of service, or 26 days with at least 10 years (education counts towards service). Remote work rules are set by your employer, so check the work regulations or ask HR.' },
+            verdict: { body: 'Sounds authoritative, but it is a generic answer. The chat does not know the extra leave days or the remote work rules at your company.' }
+          },
+          rag: {
+            source: { title: 'Company documents', body: 'It finds 3 matching passages in the base.', items: ['Work regulations 2026, § 12: Leave', 'Work regulations 2026, § 7: Remote work', 'HR FAQ: length of service'] },
+            process: { title: 'Question + 3 passages from the regulations', body: 'It adds about 1800 tokens from the regulations and writes an answer that cites them.' },
+            action: { title: 'No actions', body: 'RAG only answers with text.' },
+            answer: { body: 'After 3 years at the company you get 2 days of leave on top of the Labour Code entitlement, so 22 or 28 days depending on your total length of service (Work regulations, § 12). You can work remotely up to 3 days a week; Tuesdays and Thursdays are office days (§ 7).' },
+            verdict: { body: 'A specific answer from your own documents, with the source. Fast and cheap.' }
+          },
+          agent: {
+            source: { title: 'Company documents + tools', body: 'It searches the document base and can check other systems, e.g. HR announcements.' },
+            process: { title: 'Loop: plan, tool, check', body: 'It looks for the answer, then makes sure the regulations are current.', loop: ['Find the leave and remote work rules, check for recent changes.', 'Search company documents: leave, remote work.', 'Found § 7 and § 12. Still need to check for changes.', 'Review HR announcements from the last 6 months.', 'No changes. The regulations are current.'] },
+            action: { title: 'No actions', body: 'Nothing outside the conversation needed changing.' },
+            answer: { body: '22 or 28 days of leave (2 days on top of the Labour Code, § 12) and up to 3 remote days a week, with Tuesdays and Thursdays in the office (§ 7). The regulations have not changed in the last 6 months.' },
+            verdict: { body: 'The same answer as RAG, plus a check for changes. It costs several times more and takes longer.' }
+          }
+        }
+      },
+      task: {
+        tab: 'Multi-step task', hint: 'Needs an agent',
+        question: 'Check which artists I listened to most this month, find their concerts in Warsaw and add the dates to my calendar.',
+        lanes: {
+          chat: {
+            source: { title: 'Model memory', body: 'It does not know your listening history or your calendar.' },
+            process: { title: 'Single pass', body: 'All it can do is describe the steps for you.' },
+            action: { title: 'No access', body: 'It cannot connect to Spotify or your calendar.' },
+            answer: { body: 'I do not have access to your listening history or your calendar. Check your stats in your music app, look up concerts on a ticketing site and add the events to your calendar yourself.' },
+            verdict: { body: 'The chat only gives instructions. The task needs your data and actions in several services.' }
+          },
+          rag: {
+            source: { title: 'Document base', body: 'It finds a concert listing, but does not know who you listen to.', items: ['Concerts in Warsaw, November and December 2026'] },
+            process: { title: 'Question + concert listing', body: 'It adds the listing to the question and writes an answer.' },
+            action: { title: 'No access', body: 'It cannot add events to a calendar.' },
+            answer: { body: 'The base lists concerts in Warsaw, including at Torwar, Progresja and Stodoła. But I do not know who you listen to, and I cannot add events to your calendar.' },
+            verdict: { body: 'Partly: it found concerts, but it does not know your taste and cannot add them to your calendar.' }
+          },
+          agent: {
+            source: { title: 'Your accounts, through tools', body: 'It connects to Spotify, a ticketing service and your calendar through their APIs.' },
+            process: { title: 'Loop: plan, tool, check', body: 'It does the task step by step and checks every result.', loop: ['Get top artists, find concerts, add them to the calendar, check.', 'Spotify: your 10 most played artists this month.', 'Got 10 artists. Looking for their concerts.', 'Ticketing service: concerts by these artists in Warsaw.', '3 concerts match. Adding them to the calendar.', 'Google Calendar: 3 events with reminders.', 'All 3 events are in the calendar.'] },
+            action: { title: 'Added 3 events to your calendar', body: 'With the venue address, a ticket link and a reminder.', items: ['Nocne Tramwaje: 12 December, Torwar', 'Biały Szum: 9 January, Progresja', 'Mgła nad Wisłą: 21 February, Stodoła'] },
+            answer: { body: 'Done. Found 3 concerts by your favourite artists in Warsaw and added them to your calendar, with reminders a week and a day before.' },
+            verdict: { body: 'Only the agent combines data from several services and acts on your behalf. That has a price: the most tokens and the longest wait.' }
+          }
+        }
+      }
+    },
     footer: 'Educational simulation. No AI model is called here; the company and the artists are fictional.',
     langSwitch: 'PL', langSwitchLabel: 'Przełącz na polski'
   }
