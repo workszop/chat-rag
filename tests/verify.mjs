@@ -262,7 +262,7 @@ probe('mobile: no horizontal page scroll in any scenario', async page => {
   }
 }, { viewport: MOBILE });
 probe('mobile: hidden rows collapse and every visible cell names its lane', async page => {
-  await page.keyboard.press('ArrowRight');
+  await page.click('#nextBtn');
   const info = await page.evaluate(() => ({
     visibleCells: [...document.querySelectorAll('#matrix .cell')].filter(c => c.offsetParent !== null).length,
     laneHeads: [...document.querySelectorAll('.lane-head')].filter(c => c.offsetParent !== null).length,
@@ -307,7 +307,7 @@ probe('stepper: the revealed row is on screen below the controls', async page =>
 });
 probe('mobile: each step scrolls to the new row heading', async page => {
   for (let i = 0; i < 5; i++) {
-    await page.keyboard.press('ArrowRight');
+    await page.click('#nextBtn');
     await page.waitForTimeout(700);
     const r = await page.evaluate(() => ({ top: document.querySelector('#matrix .row-head[data-cell="current"]').getBoundingClientRect().top, controls: document.querySelector('.controls').getBoundingClientRect().bottom }));
     assert(r.top >= r.controls && r.top <= r.controls + 40, `step ${i + 1}: row heading at ${r.top}px, controls end at ${r.controls}px`);
@@ -323,6 +323,47 @@ probe('stepper: Dalej stays under the cursor when the new row already fits', asy
   const after = await page.evaluate(() => document.getElementById('nextBtn').getBoundingClientRect().top);
   assert(Math.abs(after - before) < 2, `Dalej moved from ${before} to ${after}`);
 }, { viewport: { width: 1920, height: 1078 } });
+
+probe('keys: Space scrolls the page normally when the demo is off screen', async page => {
+  await page.evaluate(() => document.querySelector('.compare').scrollIntoView());
+  await page.waitForTimeout(300);
+  const y0 = await page.evaluate(() => scrollY);
+  await page.keyboard.press(' ');
+  await page.waitForTimeout(500);
+  const r = await page.evaluate(() => ({ y: scrollY, step: document.getElementById('app').dataset.step }));
+  assert(r.step === '0', `Space stepped the demo from off screen (step ${r.step})`);
+  assert(r.y > y0, `page did not scroll (${y0} -> ${r.y})`);
+});
+probe('keys: Space advances after picking a scenario with the mouse', async page => {
+  await page.click('.scenario-btn[data-scenario-id="company"]');
+  await press(page, ' ', 2);
+  const s = await appState(page);
+  assert(s.scenario === 'company' && s.step === '2', JSON.stringify(s));
+});
+for (const vp of [{ width: 820, height: 1180 }, { width: 844, height: 390 }, { width: 900, height: 900 }, { width: 1000, height: 800 }]) {
+  probe(`tablet: no horizontal page scroll at ${vp.width}x${vp.height}`, async page => {
+    for (const key of ['1', '2', '3']) {
+      await page.keyboard.press(key);
+      await press(page, 'ArrowRight', 5);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      assert(overflow <= 0, `scenario ${key} overflows by ${overflow}px`);
+    }
+  }, { viewport: vp });
+}
+probe('mobile: Od początku brings the controls back into view', async page => {
+  await page.keyboard.press('3');
+  for (let i = 0; i < 5; i++) { await page.keyboard.press('ArrowRight'); await page.waitForTimeout(400); }
+  await page.click('#resetBtn');
+  await page.waitForTimeout(800);
+  const r = await page.evaluate(() => { const b = document.querySelector('.controls').getBoundingClientRect(); return { top: b.top, bottom: b.bottom, vh: innerHeight }; });
+  assert(r.top >= 0 && r.bottom <= r.vh, `controls off screen after reset ${JSON.stringify(r)}`);
+}, { viewport: MOBILE });
+probe('a11y: focused controls show a solid ink focus outline', async page => {
+  await page.focus('#nextBtn');
+  await page.keyboard.press('Shift');
+  const o = await page.evaluate(() => { const s = getComputedStyle(document.getElementById('nextBtn')); const ink = getComputedStyle(document.documentElement).getPropertyValue('--ink').trim(); const probeEl = document.createElement('i'); probeEl.style.color = ink; document.body.append(probeEl); const inkRgb = getComputedStyle(probeEl).color; probeEl.remove(); return { style: s.outlineStyle, width: parseFloat(s.outlineWidth), color: s.outlineColor, inkRgb }; });
+  assert(o.style === 'solid' && o.width >= 2 && o.color === o.inkRgb, JSON.stringify(o));
+});
 
 // ─── Run ───
 const filter = process.argv[2] || '';

@@ -236,7 +236,8 @@ main > section { margin-block: var(--sp-12); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lane-chip { display: inline-block; background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 2px 12px; font: 600 var(--caption)/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .04em; }
 .lang-btn { margin-left: auto; background: var(--paper-2); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px; font: 600 var(--caption) var(--font-mono); cursor: pointer; }
-.lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Solid ink ring: the edustyl --focus-ring (yellow 45%) is ~1.2:1 on white and invisible on yellow buttons. */
+.lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
 
 /* ─── Controls ─── */
 .controls { position: sticky; top: var(--header-h); z-index: 2; background: var(--paper); border-bottom: 1px solid var(--line); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: 0 auto var(--sp-4); padding-inline: var(--sp-5); box-sizing: border-box; }
@@ -254,7 +255,7 @@ main > section { margin-block: var(--sp-12); }
 .scenario-key { grid-row: span 2; align-self: center; font: 600 var(--caption) var(--font-mono); background: var(--surface); color: var(--ink); border-radius: var(--r-pill); padding: 2px 8px; }
 .scenario-tab { font: 600 var(--body-sm) var(--font-display); }
 .scenario-hint { font: var(--caption) var(--font-sans); color: inherit; opacity: .8; }
-.question-wrap { margin: 0 0 var(--sp-5); }
+.question-wrap { margin: 0 0 var(--sp-5); scroll-margin-top: calc(var(--header-h) + var(--sp-3)); }
 .question { margin: var(--sp-2) 0 0; font: 600 var(--body-lg)/1.5 var(--font-display); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-sm); }
 
 /* ─── Matrix ─── */
@@ -323,6 +324,13 @@ main > section { margin-block: var(--sp-12); }
 .choose-q::before { content: counter(q) '. '; font-family: var(--font-mono); }
 .choose-go { display: inline-flex; align-items: center; gap: var(--sp-2); background: var(--surface); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px 6px 6px; font: 600 var(--caption) var(--font-sans); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+/* ─── Narrow desktop & tablet ─── */
+@media (max-width: 1100px) {
+  :root { --row-head-w: 8rem; }
+  .loop-step { grid-template-columns: minmax(0, 1fr); }
+  .cell, .lane-head, .row-head { min-width: 0; overflow-wrap: anywhere; }
+}
+
 /* ─── Phone ─── */
 @media (max-width: 768px) {
   .shell, .matrix, .controls { padding-inline: var(--sp-4); }
@@ -761,6 +769,10 @@ function totalTokens(cost) { return cost.in + cost.out; }
 function costPerThousand(cost) { return (cost.in * PRICE_PLN_PER_MTOK.in + cost.out * PRICE_PLN_PER_MTOK.out) / 1000; }
 
 // Actions: every change goes through these, then render().
+function demoOnScreen() {
+  const r = demoEl.getBoundingClientRect();
+  return r.bottom > document.querySelector('.edu-header').getBoundingClientRect().bottom && r.top < innerHeight;
+}
 function stopPlay() { App.playing = false; clearTimeout(App.timer); App.timer = null; }
 function goTo(step) {
   App.step = Math.max(0, Math.min(PHASES.length, step));
@@ -772,8 +784,12 @@ function goTo(step) {
 // moves under the cursor. Phones stack the row into three cells, so there the row starts right under the controls.
 function revealCurrentRow() {
   const cells = [...matrixEl.querySelectorAll('.cell[data-cell="current"]')];
-  if (!cells.length) return;
   const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  if (!cells.length) {
+    // Step 0: on phones the collapsed rows shrink the page, so return to the question if it scrolled away.
+    if (questionEl.getBoundingClientRect().bottom < 0) questionEl.scrollIntoView({ block: 'start', behavior });
+    return;
+  }
   const rowHead = matrixEl.querySelector('.row-head[data-cell="current"]');
   const rects = [rowHead, ...cells].map(node => node.getBoundingClientRect());
   const top = Math.min(...rects.map(r => r.top));
@@ -965,13 +981,17 @@ resetBtn.addEventListener('click', reset);
 langBtn.addEventListener('click', () => setLang(App.lang === 'pl' ? 'en' : 'pl'));
 scenarioPicker.addEventListener('click', e => {
   const btn = e.target.closest('.scenario-btn');
-  if (btn) setScenario(btn.dataset.scenarioId);
+  if (!btn) return;
+  setScenario(btn.dataset.scenarioId);
+  nextBtn.focus({ preventScroll: true }); // so Space continues with Dalej instead of re-picking the scenario
 });
 document.addEventListener('keydown', e => {
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   // A focused button already handles Space/Enter natively; handling it here too would double-step.
   if ((e.key === ' ' || e.key === 'Enter') && e.target.closest && e.target.closest('button')) return;
   const key = e.key.toLowerCase();
+  // Space and arrows step the demo only while it is on screen; elsewhere they keep scrolling the page.
+  if ((key === 'arrowright' || key === ' ' || key === 'arrowleft') && !demoOnScreen()) return;
   if (key === 'arrowright' || key === ' ') { e.preventDefault(); userNext(); }
   else if (key === 'arrowleft') { e.preventDefault(); prev(); }
   else if (key === 'r') reset();
@@ -985,6 +1005,7 @@ chooseList.addEventListener('click', e => {
   if (!btn) return;
   setScenario(btn.dataset.goScenario);
   demoEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  nextBtn.focus({ preventScroll: true });
 });
 
 // ─── Init ───
