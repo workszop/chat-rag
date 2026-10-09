@@ -1,699 +1,513 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Workflow Comparison: Chat, RAG & Agentic AI</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --color-primary: #18181b;
-            --color-secondary: #71717a;
-            --color-accent-blue: #3b82f6;
-            --color-accent-emerald: #10b981;
-            --color-accent-violet: #8b5cf6;
-            --color-bg: #ffffff;
-            --color-bg-secondary: #fafafa;
-            --color-border: #e4e4e7;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Czat, RAG czy agent?</title>
+<!-- edustyl <head> snippet. Paste it into <head> before your stylesheet / <style>.
+     Fonts load here with <link>, never with @import in CSS: @import chains the requests
+     and blocks rendering until the font CSS arrives (Outfit, IBM Plex Sans, Roboto Mono). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap">
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(to bottom, #ffffff 0%, #fafafa 100%);
-            color: var(--color-primary);
-            line-height: 1.6;
-        }
+<!-- JS-rendered pages only (the UI is built by script): boot gate. Without it the browser
+     paints the empty shell, then invisible text (Firefox) or fallback fonts, then the app -
+     the "flashes raw HTML on open" bug. Delete this block for static pages. -->
+<style>
+  @keyframes boot-reveal { to { visibility: visible; } }
+  html:not(.app-ready) body { visibility: hidden; animation: boot-reveal 0s 4s forwards; }
+  @media print { html:not(.app-ready) body { visibility: visible; animation: none; } }
+</style>
+<noscript><style>html:not(.app-ready) body { visibility: visible; animation: none; }</style></noscript>
+<style id="edu-tokens">
+/* ============================================================
+   edulab - Colors & Type foundation
+   Fonts (Outfit, IBM Plex Sans, Roboto Mono) load from Google Fonts
+   via the <link> tags in tokens/head.html - paste that into <head>.
+   No @import here: it chains requests and blocks rendering.
+   ============================================================ */
 
-        .step {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
-        }
+:root {
+  /* ---- Brand fonts ---- */
+  --font-display: 'Outfit', 'IBM Plex Sans', system-ui, sans-serif;
+  --font-sans:    'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'Roboto Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-        .step.active {
-            display: block;
-            opacity: 1;
-        }
+  /* ============================================================
+     RAW COLOR TOKENS
+     ============================================================ */
 
-        .output-panel-content::-webkit-scrollbar {
-            width: 4px;
-        }
+  /* Paper - page background is white; the sand steps are wells/alternating sections */
+  --paper:    #FFFFFF;   /* page background (white)    */
+  --paper-2:  #FBF7E6;   /* alternating section        */
+  --paper-3:  #F5EDCB;   /* deepest sand / wells       */
+  --surface:  #FFFFFF;   /* cards & sheets             */
 
-        .output-panel-content::-webkit-scrollbar-track {
-            background: transparent;
-        }
+  /* Ink - warm near-black text & lines */
+  --ink:      #1C1917;   /* primary text               */
+  --ink-2:    #57534E;   /* secondary text             */
+  --ink-3:    #948C82;   /* muted / placeholder        */
+  --line:     #EDE7D2;   /* hairline borders           */
+  --line-2:   #DDD4B6;   /* stronger borders           */
 
-        .output-panel-content::-webkit-scrollbar-thumb {
-            background: #d4d4d8;
-            border-radius: 10px;
-        }
+  /* ---- Brand: Yellow main · Blue + Green secondary · Red danger ----
+     Plain saturated colours. A "-soft" tint IS the saturated colour
+     (panels and chips are solid), "-ink" is the text colour ON it:
+     white on blue/green/red, dark ink on yellow. Never colour-on-colour
+     (no green text on green); the saturated colour itself goes only on
+     white or black. */
 
-        .output-panel-content::-webkit-scrollbar-thumb:hover {
-            background: #a1a1aa;
-        }
+  /* Yellow - primary (buttons, progress, values on dark panels) */
+  --yellow:      #FFD500;
+  --yellow-600:  #F0C800;  /* hover / press          */
+  --yellow-soft: #FFD500;  /* chip / panel fill      */
+  --yellow-ink:  #1C1917;  /* text on yellow         */
 
-        .workflow-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
+  /* Blue - secondary (panels, chips, correct / selected state) */
+  --blue:      #1E8FC2;
+  --blue-600:  #177AA8;
+  --blue-soft: #1E8FC2;
+  --blue-ink:  #FFFFFF;
 
-        .workflow-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
-        }
+  /* Green - secondary support (chips, success) */
+  --green:      #00A651;
+  --green-600:  #009444;
+  --green-soft: #00A651;
+  --green-ink:  #FFFFFF;
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            border-radius: 9999px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-    </style>
+  /* Red - danger / important / wrong (use sparingly) */
+  --red:      #E5322D;
+  --red-600:  #C92823;
+  --red-soft: #E5322D;
+  --red-ink:  #FFFFFF;
+
+  /* Legacy role aliases - older edulab apps use these names */
+  --marigold: var(--yellow); --marigold-600: var(--yellow-600); --marigold-soft: var(--yellow-soft); --marigold-ink: var(--yellow-ink);
+  --teal:     var(--blue);   --teal-600:     var(--blue-600);   --teal-soft:     var(--blue-soft);   --teal-ink:     var(--blue-ink);
+  --sky:      var(--green);                                     --sky-soft:      var(--green-soft);  --sky-ink:      var(--green-ink);
+  --coral:    var(--red);    --coral-600:    var(--red-600);    --coral-soft:    var(--red-soft);    --coral-ink:    var(--red-ink);
+
+  /* Play palette - subject/category colours in the kids app */
+  --play-sun:    #FFD500;
+  --play-grass:  #00A651;
+  --play-berry:  #C6478B;
+  --play-grape:  #7A5AC2;
+  --play-sky:    #1E8FC2;
+  --play-coral:  #E5322D;
+
+  /* ---- Semantic ---- */
+  --success:      #00A651;  --success-soft: #00A651;  --success-ink: #FFFFFF;
+  --warning:      #FFD500;  --warning-soft: #FFD500;  --warning-ink: #1C1917;
+  --danger:       #E5322D;  --danger-soft:  #E5322D;  --danger-ink:  #FFFFFF;
+  --info:         #1E8FC2;  --info-soft:    #1E8FC2;  --info-ink:    #FFFFFF;
+
+  /* ---- Functional aliases ---- */
+  --bg:        var(--paper);
+  --fg:        var(--ink);
+  --fg-muted:  var(--ink-2);
+  --primary:   var(--yellow);
+  --on-primary:#1C1917;      /* dark text on yellow */
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--yellow) 45%, transparent);
+
+  /* ============================================================
+     SPACING  (4pt base)
+     ============================================================ */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-20: 80px; --sp-24: 96px;
+
+  /* ---- Radii (friendly, generous) ---- */
+  --r-xs: 6px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-pill: 999px;
+
+  /* ---- Elevation - warm, low, soft ---- */
+  --shadow-sm: 0 1px 2px rgba(33,30,26,.06), 0 1px 1px rgba(33,30,26,.04);
+  --shadow-md: 0 4px 16px rgba(33,30,26,.08), 0 1px 3px rgba(33,30,26,.05);
+  --shadow-lg: 0 16px 40px rgba(33,30,26,.12), 0 3px 8px rgba(33,30,26,.06);
+  --shadow-primary:  0 8px 22px color-mix(in srgb, var(--yellow) 30%, transparent);
+  --shadow-marigold: var(--shadow-primary);   /* legacy alias */
+
+  /* ============================================================
+     TYPE SCALE (semantic sizes)
+     ============================================================ */
+  --display-font:  clamp(48px, 6vw, 72px);
+  --h1: 44px; --h2: 33px; --h3: 25px; --h4: 19px;
+  --body-lg: 18px; --body: 16px; --body-sm: 14px;
+  --caption: 13px; --overline: 12px;
+}
+
+/* ============================================================
+   SEMANTIC ELEMENT STYLES
+   Apply via element selectors or .edu-prose wrapper.
+   Element defaults are wrapped in :where(.edu) (zero specificity) so any
+   single class wins: <p class="edu-overline">, <p class="edu-small">,
+   <h1 class="app-title"> keep their own font/size instead of the element default.
+   ============================================================ */
+
+.edu-display, :where(.edu) h1.display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--display-font);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+}
+:where(.edu) h1, .edu-h1 {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: var(--h1);
+  line-height: 1.06; letter-spacing: -0.02em; color: var(--ink);
+}
+:where(.edu) h2, .edu-h2 {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: var(--h2);
+  line-height: 1.12; letter-spacing: -0.015em; color: var(--ink);
+}
+:where(.edu) h3, .edu-h3 {
+  font-family: var(--font-display);
+  font-weight: 600; font-size: var(--h3);
+  line-height: 1.2; letter-spacing: -0.01em; color: var(--ink);
+}
+:where(.edu) h4, .edu-h4 {
+  font-family: var(--font-sans);
+  font-weight: 700; font-size: var(--h4);
+  line-height: 1.3; color: var(--ink);
+}
+:where(.edu) p, .edu-p, .edu-body {
+  font-family: var(--font-sans);
+  font-weight: 400; font-size: var(--body);
+  line-height: 1.6; color: var(--ink-2);
+}
+.edu-body-lg { font-family: var(--font-sans); font-size: var(--body-lg); line-height: 1.6; color: var(--ink-2); }
+.edu-small  { font-family: var(--font-sans); font-size: var(--body-sm); line-height: 1.5; color: var(--ink-2); }
+.edu-caption{ font-family: var(--font-sans); font-size: var(--caption); line-height: 1.45; color: var(--ink-3); }
+
+/* Overline - mono, tracked; functional labels only (never above page/section titles) */
+.edu-overline {
+  font-family: var(--font-mono);
+  font-weight: 500; font-size: var(--overline);
+  letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--ink);
+}
+:where(.edu) code, .edu-mono {
+  font-family: var(--font-mono);
+  font-size: 0.92em; color: var(--ink);
+  background: var(--paper-3); padding: 0.12em 0.4em; border-radius: var(--r-xs);
+}
+
+/* Solid colour blocks (callouts, stat cards, chips): set background: var(--X-soft) and
+   color: var(--X-ink) on the block, add .edu-block, and every heading/paragraph inside
+   inherits that text colour instead of the default ink. */
+.edu-block, .edu-block h1, .edu-block h2, .edu-block h3, .edu-block h4, .edu-block p,
+.edu-block li, .edu-block small { color: inherit; }
+
+body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
+</style>
+<style>
+/* ─── App tokens ─── */
+:root {
+  --lane-chat: var(--blue);        --lane-chat-ink: var(--blue-ink);
+  --lane-rag: var(--green);        --lane-rag-ink: var(--green-ink);
+  --lane-agent: var(--play-grape); --lane-agent-ink: var(--blue-ink);
+  --shell-max: 1100px;
+  --matrix-max: 1360px;
+  --row-head-w: 11rem;
+}
+[data-lane="chat"]  { --lane: var(--lane-chat);  --lane-ink: var(--lane-chat-ink); }
+[data-lane="rag"]   { --lane: var(--lane-rag);   --lane-ink: var(--lane-rag-ink); }
+[data-lane="agent"] { --lane: var(--lane-agent); --lane-ink: var(--lane-agent-ink); }
+
+/* ─── Edulab chrome ─── */
+body.edu { margin: 0; }
+.edu-header { position: sticky; top: 0; z-index: 50; width: 100%; background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.edu-header-inner { max-width: var(--shell-max); margin: 0 auto; padding: var(--sp-2) var(--sp-5); display: flex; align-items: center; gap: var(--sp-3); box-sizing: border-box; }
+.edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; }
+.edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: var(--h4); letter-spacing: -.02em; color: var(--ink); }
+.edu-lead { font-size: var(--body-lg); color: var(--ink-2); margin: var(--sp-3) 0 0; }
+
+/* ─── Base ─── */
+.shell { width: 100%; max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--sp-5); box-sizing: border-box; }
+main > section { margin-block: var(--sp-12); }
+.hero { text-align: center; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lane-chip { display: inline-block; background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 2px 12px; font: 600 var(--caption)/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .04em; }
+.lang-btn { margin-left: auto; background: var(--paper-2); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px; font: 600 var(--caption) var(--font-mono); cursor: pointer; }
+.lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ─── Controls ─── */
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: var(--sp-5) auto 0; padding-inline: var(--sp-5); box-sizing: border-box; }
+.btn { border: 0; border-radius: var(--r-pill); padding: 10px 20px; font: 600 var(--body-sm) var(--font-sans); cursor: pointer; transition: background-color .2s ease; }
+.btn-primary { background: var(--yellow); color: var(--yellow-ink); }
+.btn-secondary { background: var(--paper-2); color: var(--ink); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.progress { flex: 1 1 10rem; height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
+.progress-fill { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s ease; }
+.progress-label { font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
 </head>
-<body class="text-gray-800">
-    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
-        <header class="text-center mb-16 pt-8">
-            <div class="inline-flex items-center gap-2 mb-4">
-                <span class="badge bg-zinc-100 text-zinc-700">AI Workflows</span>
-            </div>
-            <h1 class="text-4xl md:text-5xl font-bold text-zinc-900 mb-4 tracking-tight">
-                Understanding AI Approaches
-            </h1>
-            <p class="text-lg text-zinc-600 max-w-2xl mx-auto">
-                Compare how Chat, RAG, and Agentic AI workflows process complex tasks
-            </p>
-        </header>
+<body class="edu">
+<header class="edu-header"><div class="edu-header-inner">
+  <img class="edu-logo" alt="edulab" src="data:image/png;base64,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">
+  <span class="edu-wordmark">edulab</span>
+  <button id="langBtn" class="lang-btn" type="button"></button>
+</div></header>
+<div id="app" class="app">
+  <main>
+    <section class="hero shell">
+      <h1 class="edu-h1" data-i18n="title"></h1>
+      <p class="edu-lead" data-i18n="lead"></p>
+    </section>
+    <section class="ladder shell" aria-labelledby="ladderTitle">
+      <h2 id="ladderTitle" class="edu-h2" data-i18n="ladderTitle"></h2>
+      <ol id="ladderList" class="ladder-list"></ol>
+      <p class="rag-full edu-caption" data-i18n="ragFull"></p>
+    </section>
+    <section id="demo" class="demo" aria-labelledby="demoTitle">
+      <div class="shell">
+        <h2 id="demoTitle" class="edu-h2" data-i18n="demoTitle"></h2>
+        <p class="edu-body-lg" data-i18n="demoLead"></p>
+        <p class="edu-overline" data-i18n="scenarioLabel"></p>
+        <div id="scenarioPicker" class="scenario-picker"></div>
+        <figure class="question-wrap">
+          <figcaption class="edu-overline" data-i18n="questionLabel"></figcaption>
+          <blockquote id="question" class="question"></blockquote>
+        </figure>
+      </div>
+      <div id="matrix" class="matrix"></div>
+      <div class="controls" role="toolbar" aria-labelledby="demoTitle">
+        <button id="prevBtn" class="btn btn-secondary" type="button" data-i18n="prev"></button>
+        <button id="nextBtn" class="btn btn-primary" type="button" data-i18n="next"></button>
+        <button id="playBtn" class="btn btn-secondary" type="button" aria-pressed="false"></button>
+        <button id="resetBtn" class="btn btn-secondary" type="button" data-i18n="reset"></button>
+        <div id="progress" class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" aria-labelledby="progressLabel"><span id="progressFill" class="progress-fill"></span></div>
+        <span id="progressLabel" class="progress-label"></span>
+      </div>
+      <p class="kbd-hint edu-caption shell" data-i18n="kbdHint"></p>
+      <p class="cost-note edu-caption shell" data-i18n="costNote"></p>
+      <p id="live" class="sr-only" aria-live="polite"></p>
+    </section>
+    <section class="compare shell" aria-labelledby="compareTitle">
+      <h2 id="compareTitle" class="edu-h2" data-i18n="compareTitle"></h2>
+      <div class="table-wrap"><table id="compareTable" class="compare-table"></table></div>
+    </section>
+    <section class="choose shell" aria-labelledby="chooseTitle">
+      <h2 id="chooseTitle" class="edu-h2" data-i18n="chooseTitle"></h2>
+      <p class="edu-body-lg" data-i18n="chooseLead"></p>
+      <ol id="chooseList" class="choose-list"></ol>
+    </section>
+  </main>
+  <footer class="footer shell edu-caption" data-i18n="footer"></footer>
+</div>
+<script>
+// ─── Constants ───
+const LANES = ['chat', 'rag', 'agent'];
+const PHASES = ['source', 'process', 'action', 'answer', 'verdict'];
+const SCENARIO_IDS = ['general', 'company', 'task'];
+const AUTO_MS = 2600;
+const LANG_KEY = 'chat-rag-language';
+const PRICE_PLN_PER_MTOK = { in: 5, out: 20 };
+const FLOW = {
+  chat:  [{ id: 'question' }, { id: 'model' }, { id: 'answer' }],
+  rag:   [{ id: 'question' }, { id: 'docs', added: true }, { id: 'model' }, { id: 'answer' }],
+  agent: [{ id: 'question' }, { id: 'model' }, { id: 'loop', added: true }, { id: 'tools', added: true }, { id: 'answer' }]
+};
+const FLOW_HIGHLIGHT = {
+  chat:  { source: 'model', process: 'model', action: null, answer: 'answer', verdict: null },
+  rag:   { source: 'docs', process: 'model', action: null, answer: 'answer', verdict: null },
+  agent: { source: 'tools', process: 'loop', action: 'tools', answer: 'answer', verdict: null }
+};
+const T = {
+  pl: {
+    docTitle: 'Czat, RAG czy agent?',
+    title: 'Czat, RAG czy agent?',
+    lead: 'Trzy sposoby pracy z AI na tych samych pytaniach. Każde kolejne podejście dokłada jedną umiejętność, a w symulacji porównasz je wiersz po wierszu.',
+    ladderTitle: 'Każdy poziom dodaje jedną umiejętność',
+    ladder: {
+      chat:  { name: 'Czat', tagline: 'Odpowiada z pamięci', adds: 'Wiedza z treningu modelu', analogy: 'Jak erudyta, który odpowiada od ręki, ale nie zajrzy do Twoich dokumentów.' },
+      rag:   { name: 'RAG', tagline: 'Najpierw szuka w dokumentach', adds: '+ wyszukiwanie w Twoich dokumentach', analogy: 'Jak specjalista, który przed odpowiedzią otwiera firmowy segregator i podaje, skąd to wie.' },
+      agent: { name: 'Agent', tagline: 'Planuje i działa', adds: '+ narzędzia, plan i pętla sprawdzania', analogy: 'Jak asystent, który sam załatwia sprawę w kilku systemach i sprawdza, czy się udało.' }
+    },
+    ragFull: 'RAG to skrót od Retrieval-Augmented Generation, czyli generowania odpowiedzi wspartego wyszukiwaniem w dokumentach.',
+    demoTitle: 'Jedno pytanie, trzy podejścia',
+    demoLead: 'Wybierz przykład i klikaj „Dalej”. Każdy krok odsłania jeden wiersz we wszystkich trzech kolumnach naraz, więc od razu widać różnice.',
+    scenarioLabel: 'Wybierz przykład',
+    questionLabel: 'Pytanie użytkownika',
+    flowLabel: 'Schemat działania',
+    nodes: { question: 'Pytanie', model: 'Model', docs: 'Dokumenty', loop: 'Pętla', tools: 'Narzędzia', answer: 'Odpowiedź' },
+    added: 'nowe',
+    phases: { source: 'Skąd bierze wiedzę?', process: 'Jak pracuje?', action: 'Czy coś robi w świecie?', answer: 'Odpowiedź', verdict: 'Ocena i koszt' },
+    use: { unused: 'Potrafi, ale tu nie trzeba', unavailable: 'Tego nie potrafi' },
+    loopKinds: { plan: 'Plan', tool: 'Narzędzie', reflect: 'Sprawdzenie' },
+    grades: { best: 'Najlepszy wybór', overkill: 'Działa, ale przepłacasz', weak: 'Odpowiedź ogólnikowa', fail: 'Nie wykona zadania' },
+    pending: 'Kliknij „Dalej”',
+    prev: 'Wstecz', next: 'Dalej', play: 'Odtwarzaj', pause: 'Pauza', reset: 'Od początku',
+    stepOf: 'Krok {n} z {total}',
+    stepIdle: 'Gotowe do startu: kliknij „Dalej”',
+    winner: 'Wygrywa',
+    seconds: '{n} s',
+    costTokens: 'Tokeny', costTime: 'Czas', costThousand: '1000 takich zapytań',
+    costNote: 'Szacunek przy założonej cenie 5 zł za 1 mln tokenów wejściowych i 20 zł za 1 mln wyjściowych. Agent zużywa najwięcej, bo w każdym kroku pętli wysyła modelowi cały dotychczasowy kontekst.',
+    kbdHint: '→ lub spacja: dalej · ←: wstecz · A: odtwarzaj · R: od początku · 1-3: przykład · L: język',
+    compareTitle: 'Porównanie w skrócie',
+    compareFeature: 'Cecha',
+    compareRows: [
+      ['Skąd bierze wiedzę', 'Z pamięci modelu (dane treningowe)', 'Z Twoich dokumentów i pamięci modelu', 'Z narzędzi, systemów, dokumentów i pamięci'],
+      ['Twoje dane', 'Nie zna', 'Zna to, co jest w bazie dokumentów', 'Sięga po nie przez narzędzia (API)'],
+      ['Aktualność', 'Do daty treningu', 'Tak aktualna jak baza dokumentów', 'Na bieżąco, sprawdza w źródłach'],
+      ['Wykonuje działania', 'Nie', 'Nie', 'Tak, np. dodaje wydarzenia do kalendarza'],
+      ['Liczba kroków', 'Jeden', 'Dwa: wyszukaj, odpowiedz', 'Wiele, w pętli'],
+      ['Koszt i czas', 'Najniższy', 'Średni', 'Najwyższy'],
+      ['Podaje źródła', 'Nie', 'Tak', 'Tak, gdy korzysta z dokumentów'],
+      ['Najlepszy do', 'Wiedzy ogólnej, pisania, tłumaczeń', 'Pytań o firmowe dokumenty i procedury', 'Zadań wielokrokowych w kilku systemach']
+    ],
+    chooseTitle: 'Które podejście wybrać?',
+    chooseLead: 'Zadaj sobie trzy pytania, po kolei. Pierwsze „tak” wskazuje podejście.',
+    choose: [
+      { q: 'Trzeba coś zrobić albo połączyć kilka systemów (kalendarz, poczta, CRM)?', lane: 'agent' },
+      { q: 'Odpowiedź jest w Twoich dokumentach: regulaminach, umowach, procedurach?', lane: 'rag' },
+      { q: 'Wystarczy wiedza ogólna: wyjaśnienie, tekst, tłumaczenie?', lane: 'chat' }
+    ],
+    chooseShow: 'Zobacz przykład',
+    footer: 'Symulacja edukacyjna. Żaden model AI nie jest tu wywoływany, a firma i wykonawcy są fikcyjni.',
+    langSwitch: 'EN', langSwitchLabel: 'Switch to English'
+  },
+  en: {
+    docTitle: 'Chat, RAG or agent?',
+    title: 'Chat, RAG or agent?',
+    lead: 'Three ways of working with AI on the same questions. Each approach adds one ability, and the simulation lets you compare them row by row.',
+    ladderTitle: 'Each level adds one ability',
+    ladder: {
+      chat:  { name: 'Chat', tagline: 'Answers from memory', adds: 'Knowledge from model training', analogy: 'Like a well-read expert who answers on the spot but never opens your documents.' },
+      rag:   { name: 'RAG', tagline: 'Searches your documents first', adds: '+ search in your documents', analogy: 'Like a specialist who opens the company binder before answering and tells you where the answer came from.' },
+      agent: { name: 'Agent', tagline: 'Plans and acts', adds: '+ tools, a plan and a checking loop', analogy: 'Like an assistant who gets the job done across several systems and checks that it worked.' }
+    },
+    ragFull: 'RAG stands for Retrieval-Augmented Generation: writing an answer with help from a search through your documents.',
+    demoTitle: 'One question, three approaches',
+    demoLead: 'Pick an example and press “Next”. Each step reveals one row in all three columns at once, so the differences are right next to each other.',
+    scenarioLabel: 'Pick an example',
+    questionLabel: 'User question',
+    flowLabel: 'How it works',
+    nodes: { question: 'Question', model: 'Model', docs: 'Documents', loop: 'Loop', tools: 'Tools', answer: 'Response' },
+    added: 'new',
+    phases: { source: 'Where does the knowledge come from?', process: 'How does it work?', action: 'Does it act in the world?', answer: 'Response', verdict: 'Verdict and cost' },
+    use: { unused: 'Can, but not needed here', unavailable: 'Cannot do this' },
+    loopKinds: { plan: 'Plan', tool: 'Tool', reflect: 'Check' },
+    grades: { best: 'Best choice', overkill: 'Works, but you overpay', weak: 'Vague answer', fail: 'Cannot do the task' },
+    pending: 'Press “Next”',
+    prev: 'Back', next: 'Next', play: 'Play', pause: 'Pause', reset: 'Start over',
+    stepOf: 'Step {n} of {total}',
+    stepIdle: 'Ready: press “Next”',
+    winner: 'Winner',
+    seconds: '{n} s',
+    costTokens: 'Tokens', costTime: 'Time', costThousand: '1000 such queries',
+    costNote: 'Estimate at an assumed price of PLN 5 per 1M input tokens and PLN 20 per 1M output tokens. The agent uses the most because every loop step sends the whole context so far back to the model.',
+    kbdHint: '→ or Space: next · ←: back · A: play · R: start over · 1-3: example · L: language',
+    compareTitle: 'At a glance',
+    compareFeature: 'Feature',
+    compareRows: [
+      ['Where knowledge comes from', 'Model memory (training data)', 'Your documents and model memory', 'Tools, systems, documents and memory'],
+      ['Your data', 'Does not know it', 'Knows what is in the document base', 'Reaches it through tools (APIs)'],
+      ['Freshness', 'Up to the training cut-off', 'As fresh as the document base', 'Live, checks the sources'],
+      ['Takes actions', 'No', 'No', 'Yes, e.g. adds events to a calendar'],
+      ['Number of steps', 'One', 'Two: search, then answer', 'Many, in a loop'],
+      ['Cost and time', 'Lowest', 'Medium', 'Highest'],
+      ['Cites sources', 'No', 'Yes', 'Yes, when it uses documents'],
+      ['Best for', 'General knowledge, writing, translation', 'Questions about company documents and procedures', 'Multi-step tasks across several systems']
+    ],
+    chooseTitle: 'Which approach should you pick?',
+    chooseLead: 'Ask yourself three questions, in order. The first “yes” points to the approach.',
+    choose: [
+      { q: 'Do you need something done, or several systems connected (calendar, email, CRM)?', lane: 'agent' },
+      { q: 'Is the answer in your documents: policies, contracts, procedures?', lane: 'rag' },
+      { q: 'Is general knowledge enough: an explanation, a text, a translation?', lane: 'chat' }
+    ],
+    chooseShow: 'See the example',
+    footer: 'Educational simulation. No AI model is called here; the company and the artists are fictional.',
+    langSwitch: 'PL', langSwitchLabel: 'Przełącz na polski'
+  }
+};
 
-        <div class="grid md:grid-cols-3 gap-8 mb-20">
-            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
-                <div class="workflow-header p-6 border-b border-zinc-100">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-xl font-semibold text-zinc-900">Chat AI</h2>
-                    </div>
-                    <p class="text-sm text-zinc-500">Non-Agentic Workflow</p>
-                </div>
-                <div class="workflow-body p-6 flex-grow">
-                    <div class="flex flex-col gap-6">
-                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
-                            <svg viewBox="0 0 320 260" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <style>
-                                    .chat-text { font-family: 'Inter', sans-serif; fill: #3f3f46; }
-                                    .chat-label { font-size: 11px; font-weight: 600; }
-                                    .chat-sub { font-size: 9px; fill: #71717a; }
-                                </style>
-                                <!-- User -->
-                                <circle cx="160" cy="28" r="14" stroke="#3b82f6" stroke-width="1.5" fill="#eff6ff"/>
-                                <path d="M152 26 a8 8 0 1 1 16 0" stroke="#3b82f6" stroke-width="1.5" fill="none"/>
-                                <circle cx="160" cy="22" r="4" fill="#3b82f6"/>
-                                <text x="160" y="52" text-anchor="middle" class="chat-text chat-label">User Query</text>
+// ─── State ───
+const App = { lang: 'pl', scenarioId: 'general', step: 0, playing: false, timer: null };
+try { const saved = localStorage.getItem(LANG_KEY); if (saved === 'pl' || saved === 'en') App.lang = saved; } catch {}
 
-                                <!-- Arrow down -->
-                                <line x1="160" y1="58" x2="160" y2="78" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,76 160,84 165,76" fill="#d4d4d8"/>
+// ─── DOM refs ───
+const $ = id => document.getElementById(id);
+const rootEl = $('app');
+const langBtn = $('langBtn');
+const ladderList = $('ladderList');
+const demoEl = $('demo');
+const scenarioPicker = $('scenarioPicker');
+const questionEl = $('question');
+const matrixEl = $('matrix');
+const prevBtn = $('prevBtn');
+const nextBtn = $('nextBtn');
+const playBtn = $('playBtn');
+const resetBtn = $('resetBtn');
+const progressEl = $('progress');
+const progressFill = $('progressFill');
+const progressLabel = $('progressLabel');
+const liveEl = $('live');
+const compareTable = $('compareTable');
+const chooseList = $('chooseList');
 
-                                <!-- LLM Box -->
-                                <rect x="80" y="86" width="160" height="44" rx="10" stroke="#3b82f6" stroke-width="1.5" fill="#eff6ff"/>
-                                <text x="160" y="106" text-anchor="middle" class="chat-text chat-label">LLM</text>
-                                <text x="160" y="120" text-anchor="middle" class="chat-text chat-sub">Pre-trained Knowledge</text>
+// ─── Helpers ───
+function t(key) { return T[App.lang][key]; }
+function fmt(template, vars) { return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k])); }
+function el(tag, attrs = {}, children = []) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (value === null || value === undefined || value === false) continue;
+    if (key === 'text') node.textContent = value;
+    else if (key === 'class') node.className = value;
+    else if (key === 'dataset') Object.assign(node.dataset, value);
+    else node.setAttribute(key, value === true ? '' : value);
+  }
+  node.append(...children.filter(Boolean));
+  return node;
+}
+function setLang(lang) {
+  if (!T[lang]) return;
+  App.lang = lang;
+  try { localStorage.setItem(LANG_KEY, lang); } catch {}
+  build();
+  render();
+}
 
-                                <!-- Web search branch (dashed, optional) -->
-                                <line x1="240" y1="108" x2="280" y2="108" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 3"/>
-                                <polygon points="278,104 286,108 278,112" fill="#93c5fd"/>
-                                <!-- Web icon -->
-                                <circle cx="300" cy="108" r="14" stroke="#93c5fd" stroke-width="1.2" fill="#eff6ff"/>
-                                <circle cx="300" cy="108" r="8" stroke="#93c5fd" stroke-width="0.8" fill="none"/>
-                                <ellipse cx="300" cy="108" rx="3.5" ry="8" stroke="#93c5fd" stroke-width="0.8" fill="none"/>
-                                <line x1="292" y1="108" x2="308" y2="108" stroke="#93c5fd" stroke-width="0.8"/>
-                                <text x="300" y="132" text-anchor="middle" class="chat-text chat-sub">Web</text>
-                                <text x="300" y="142" text-anchor="middle" class="chat-text" style="font-size:8px;fill:#93c5fd;font-style:italic;">optional</text>
+// ─── Render ───
+function applyI18n() {
+  document.documentElement.lang = App.lang;
+  document.title = t('docTitle');
+  document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
+  langBtn.textContent = t('langSwitch');
+  langBtn.setAttribute('aria-label', t('langSwitchLabel'));
+}
+function build() { applyI18n(); }
+function render() {
+  const total = PHASES.length;
+  const status = App.step === 0 ? 'idle' : App.step === total ? 'done' : 'running';
+  Object.assign(rootEl.dataset, { lang: App.lang, scenario: App.scenarioId, step: String(App.step), status, playing: String(App.playing) });
+  playBtn.textContent = t(App.playing ? 'pause' : 'play');
+  progressLabel.textContent = t('stepIdle');
+}
 
-                                <!-- Arrow down from LLM -->
-                                <line x1="160" y1="130" x2="160" y2="156" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,154 160,162 165,154" fill="#d4d4d8"/>
+// ─── Listeners ───
+langBtn.addEventListener('click', () => setLang(App.lang === 'pl' ? 'en' : 'pl'));
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key.toLowerCase() === 'l') setLang(App.lang === 'pl' ? 'en' : 'pl');
+});
 
-                                <!-- Single pass label -->
-                                <rect x="100" y="164" width="120" height="28" rx="8" stroke="#3b82f6" stroke-width="1.2" fill="white"/>
-                                <text x="160" y="182" text-anchor="middle" class="chat-text chat-label" style="fill:#3b82f6;">Single Pass</text>
-
-                                <!-- Arrow down -->
-                                <line x1="160" y1="192" x2="160" y2="214" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,212 160,220 165,212" fill="#d4d4d8"/>
-
-                                <!-- Response -->
-                                <rect x="100" y="222" width="120" height="30" rx="10" stroke="#3b82f6" stroke-width="1.5" fill="#dbeafe"/>
-                                <text x="160" y="241" text-anchor="middle" class="chat-text chat-label">Response</text>
-                            </svg>
-                        </div>
-                        <div class="explanation">
-                            <p class="text-sm text-zinc-600 mb-4">Direct AI processing with web search in a single pass without task decomposition.</p>
-                            <ul class="space-y-2 text-sm text-zinc-600">
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Can search the web for information</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Single processing step</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>No personalized data access</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>No self-correction capability</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
-                <div class="workflow-header p-6 border-b border-zinc-100">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-xl font-semibold text-zinc-900">RAG AI</h2>
-                    </div>
-                    <p class="text-sm text-zinc-500">Retrieval-Augmented Generation</p>
-                </div>
-                <div class="workflow-body p-6 flex-grow">
-                    <div class="flex flex-col gap-6">
-                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
-                            <svg viewBox="0 0 320 300" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <style>
-                                    .rag-text { font-family: 'Inter', sans-serif; fill: #3f3f46; }
-                                    .rag-label { font-size: 11px; font-weight: 600; }
-                                    .rag-sub { font-size: 9px; fill: #71717a; }
-                                </style>
-                                <!-- User -->
-                                <circle cx="160" cy="28" r="14" stroke="#10b981" stroke-width="1.5" fill="#ecfdf5"/>
-                                <path d="M152 26 a8 8 0 1 1 16 0" stroke="#10b981" stroke-width="1.5" fill="none"/>
-                                <circle cx="160" cy="22" r="4" fill="#10b981"/>
-                                <text x="160" y="52" text-anchor="middle" class="rag-text rag-label">User Query</text>
-
-                                <!-- Arrow down to retrieval -->
-                                <line x1="160" y1="58" x2="160" y2="78" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,76 160,84 165,76" fill="#d4d4d8"/>
-
-                                <!-- Retrieval System -->
-                                <rect x="90" y="86" width="140" height="36" rx="10" stroke="#10b981" stroke-width="1.5" fill="#ecfdf5"/>
-                                <text x="160" y="108" text-anchor="middle" class="rag-text rag-label">Retrieval System</text>
-
-                                <!-- Arrow to Knowledge Base -->
-                                <line x1="160" y1="122" x2="160" y2="138" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,136 160,144 165,136" fill="#d4d4d8"/>
-
-                                <!-- Knowledge Base (prominent) -->
-                                <rect x="60" y="146" width="200" height="48" rx="12" stroke="#10b981" stroke-width="2" fill="#d1fae5"/>
-                                <!-- DB icon -->
-                                <ellipse cx="100" cy="164" rx="12" ry="6" stroke="#059669" stroke-width="1.2" fill="#a7f3d0"/>
-                                <path d="M88 164 v10 c0 3.3 5.4 6 12 6 s12-2.7 12-6 v-10" stroke="#059669" stroke-width="1.2" fill="none"/>
-                                <text x="170" y="166" text-anchor="middle" class="rag-text rag-label" style="fill:#059669;">Knowledge Base</text>
-                                <text x="170" y="180" text-anchor="middle" class="rag-text rag-sub">Docs, PDFs, Vector DB</text>
-
-                                <!-- Arrow from KB back up-right to Augmented Prompt -->
-                                <line x1="160" y1="194" x2="160" y2="210" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,208 160,216 165,208" fill="#d4d4d8"/>
-
-                                <!-- Augmented Prompt -->
-                                <rect x="80" y="218" width="160" height="30" rx="8" stroke="#10b981" stroke-width="1.2" fill="white"/>
-                                <text x="160" y="237" text-anchor="middle" class="rag-text rag-label" style="fill:#10b981;">Query + Context</text>
-
-                                <!-- Arrow down to LLM -->
-                                <line x1="160" y1="248" x2="160" y2="258" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,256 160,264 165,256" fill="#d4d4d8"/>
-
-                                <!-- LLM + Response -->
-                                <rect x="90" y="266" width="140" height="28" rx="10" stroke="#10b981" stroke-width="1.5" fill="#ecfdf5"/>
-                                <text x="160" y="284" text-anchor="middle" class="rag-text rag-label">Grounded Response</text>
-                            </svg>
-                        </div>
-                        <div class="explanation">
-                            <p class="text-sm text-zinc-600 mb-4">Combines AI with information retrieval for contextually-grounded responses.</p>
-                            <ul class="space-y-2 text-sm text-zinc-600">
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Searches knowledge base for relevant docs</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Augments query with retrieved context</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Generates grounded responses</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Reduced hallucinations with sources</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Updatable knowledge base</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="workflow-card bg-white rounded-2xl border border-zinc-200 overflow-hidden flex flex-col">
-                <div class="workflow-header p-6 border-b border-zinc-100">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div class="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <h2 class="text-xl font-semibold text-zinc-900">Agentic AI</h2>
-                    </div>
-                    <p class="text-sm text-zinc-500">Autonomous Multi-Step Workflow</p>
-                </div>
-                <div class="workflow-body p-6 flex-grow">
-                     <div class="flex flex-col gap-6">
-                        <div class="diagram-container bg-zinc-50 rounded-xl p-4">
-                            <svg viewBox="0 0 320 340" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-auto">
-                                <style>
-                                    .agent-text { font-family: 'Inter', sans-serif; fill: #3f3f46; }
-                                    .agent-label { font-size: 11px; font-weight: 600; }
-                                    .agent-sub { font-size: 9px; fill: #71717a; }
-                                </style>
-                                <!-- User -->
-                                <circle cx="160" cy="28" r="14" stroke="#8b5cf6" stroke-width="1.5" fill="#f5f3ff"/>
-                                <path d="M152 26 a8 8 0 1 1 16 0" stroke="#8b5cf6" stroke-width="1.5" fill="none"/>
-                                <circle cx="160" cy="22" r="4" fill="#8b5cf6"/>
-                                <text x="160" y="52" text-anchor="middle" class="agent-text agent-label">User Query</text>
-
-                                <!-- Arrow down -->
-                                <line x1="160" y1="58" x2="160" y2="72" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,70 160,78 165,70" fill="#d4d4d8"/>
-
-                                <!-- Agent Controller -->
-                                <rect x="80" y="80" width="160" height="36" rx="10" stroke="#8b5cf6" stroke-width="2" fill="#ede9fe"/>
-                                <text x="160" y="96" text-anchor="middle" class="agent-text agent-label" style="fill:#7c3aed;">AI Agent</text>
-                                <text x="160" y="108" text-anchor="middle" class="agent-text agent-sub">Planner &amp; Controller</text>
-
-                                <!-- Loop container -->
-                                <rect x="56" y="124" width="208" height="164" rx="12" stroke="#c4b5fd" stroke-width="1.5" stroke-dasharray="6 3" fill="#faf5ff" opacity="0.5"/>
-                                <text x="160" y="140" text-anchor="middle" class="agent-text agent-sub" style="fill:#8b5cf6;font-weight:600;font-size:10px;">Iterative Loop</text>
-
-                                <!-- Plan step -->
-                                <rect x="100" y="148" width="120" height="28" rx="8" stroke="#8b5cf6" stroke-width="1.2" fill="white"/>
-                                <text x="160" y="166" text-anchor="middle" class="agent-text agent-label">Plan</text>
-
-                                <!-- Arrow -->
-                                <line x1="160" y1="176" x2="160" y2="188" stroke="#c4b5fd" stroke-width="1.2"/>
-                                <polygon points="156,186 160,192 164,186" fill="#c4b5fd"/>
-
-                                <!-- Act / Tool Use step -->
-                                <rect x="100" y="194" width="120" height="28" rx="8" stroke="#8b5cf6" stroke-width="1.2" fill="white"/>
-                                <text x="160" y="212" text-anchor="middle" class="agent-text agent-label">Act &amp; Use Tools</text>
-
-                                <!-- External tools -->
-                                <line x1="220" y1="208" x2="250" y2="208" stroke="#c4b5fd" stroke-width="1.2"/>
-                                <polygon points="248,204 256,208 248,212" fill="#c4b5fd"/>
-                                <rect x="258" y="192" width="52" height="32" rx="6" stroke="#c4b5fd" stroke-width="1.2" fill="#f5f3ff"/>
-                                <!-- Gear icon -->
-                                <circle cx="284" cy="204" r="6" stroke="#8b5cf6" stroke-width="1" fill="none"/>
-                                <circle cx="284" cy="204" r="2" fill="#8b5cf6"/>
-                                <text x="284" y="220" text-anchor="middle" class="agent-text" style="font-size:7px;fill:#8b5cf6;">APIs, DBs</text>
-
-                                <!-- Arrow -->
-                                <line x1="160" y1="222" x2="160" y2="234" stroke="#c4b5fd" stroke-width="1.2"/>
-                                <polygon points="156,232 160,238 164,232" fill="#c4b5fd"/>
-
-                                <!-- Reflect step -->
-                                <rect x="100" y="240" width="120" height="28" rx="8" stroke="#8b5cf6" stroke-width="1.2" fill="white"/>
-                                <text x="160" y="258" text-anchor="middle" class="agent-text agent-label">Reflect &amp; Refine</text>
-
-                                <!-- Loop arrow back to Plan -->
-                                <path d="M96 254 C70 254 70 162 96 162" stroke="#8b5cf6" stroke-width="1.5" fill="none" marker-end="url(#arrowViolet)"/>
-                                <defs>
-                                    <marker id="arrowViolet" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                                        <polygon points="0,0 6,3 0,6" fill="#8b5cf6"/>
-                                    </marker>
-                                </defs>
-
-                                <!-- Arrow down out of loop -->
-                                <line x1="160" y1="268" x2="160" y2="278" stroke="#d4d4d8" stroke-width="1.5"/>
-
-                                <!-- Done check -->
-                                <line x1="160" y1="278" x2="160" y2="300" stroke="#d4d4d8" stroke-width="1.5"/>
-                                <polygon points="155,298 160,306 165,298" fill="#d4d4d8"/>
-
-                                <!-- Result -->
-                                <rect x="90" y="308" width="140" height="28" rx="10" stroke="#8b5cf6" stroke-width="1.5" fill="#ede9fe"/>
-                                <text x="160" y="326" text-anchor="middle" class="agent-text agent-label">Result</text>
-                            </svg>
-                        </div>
-                        <div class="explanation">
-                            <p class="text-sm text-zinc-600 mb-4">Autonomous AI that plans, executes, and iterates through complex tasks.</p>
-                            <ul class="space-y-2 text-sm text-zinc-600">
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Strategic planning and task breakdown</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>External tool and API access</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Evaluates intermediate results</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Iterative self-improvement loops</span>
-                                </li>
-                                <li class="flex items-start gap-2">
-                                    <span class="text-zinc-400 mt-0.5">•</span>
-                                    <span>Context-aware, personalized results</span>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="interactive-area bg-white border border-zinc-200 p-8 md:p-10 rounded-2xl">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-zinc-900 mb-2">Interactive Demo</h2>
-                <p class="text-zinc-600">See how each workflow processes a complex task in real-time</p>
-            </div>
-
-            <div class="input-section space-y-4 mb-10">
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <select id="example-select" class="px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm bg-white">
-                        <option value="0">General Knowledge → Chat is enough</option>
-                        <option value="1">Company Policy → RAG shines</option>
-                        <option value="2">Multi-step Task → needs an Agent</option>
-                    </select>
-                    <button id="process-btn" class="bg-zinc-900 hover:bg-zinc-800 text-white font-medium py-3 px-8 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:ring-offset-2 whitespace-nowrap">
-                        Run Demo
-                    </button>
-                </div>
-                <input type="text" id="query-input" class="w-full px-4 py-3 border border-zinc-300 rounded-xl focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 outline-none transition-all text-sm" placeholder="e.g., Check my music stats and find concerts..." value="Explain the difference between TCP and UDP, with a simple analogy." readonly>
-            </div>
-
-            <div class="output-section grid md:grid-cols-3 gap-6">
-                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
-                    <div class="output-title border-b border-zinc-200 px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-blue-500"></div>
-                            <span class="text-sm font-medium text-zinc-900">Chat AI</span>
-                        </div>
-                    </div>
-                    <div id="ai-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
-                    </div>
-                </div>
-
-                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
-                    <div class="output-title border-b border-zinc-200 px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                            <span class="text-sm font-medium text-zinc-900">RAG AI</span>
-                        </div>
-                    </div>
-                    <div id="rag-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
-                    </div>
-                </div>
-
-                <div class="output-panel bg-zinc-50 border border-zinc-200 rounded-xl overflow-hidden">
-                    <div class="output-title border-b border-zinc-200 px-4 py-3">
-                        <div class="flex items-center gap-2">
-                            <div class="w-2 h-2 rounded-full bg-violet-500"></div>
-                            <span class="text-sm font-medium text-zinc-900">Agentic AI</span>
-                        </div>
-                    </div>
-                    <div id="agentic-steps" class="p-4 space-y-3 output-panel-content h-80 overflow-y-auto">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="text-center mt-20 pt-12 pb-8 border-t border-zinc-200">
-            <p class="text-sm text-zinc-500">Built to demonstrate AI workflow approaches</p>
-        </footer>
-    </div>
-
-    <script>
-        const queryInput = document.getElementById('query-input');
-        const processBtn = document.getElementById('process-btn');
-        const exampleSelect = document.getElementById('example-select');
-        const aiStepsContainer = document.getElementById('ai-steps');
-        const ragStepsContainer = document.getElementById('rag-steps');
-        const agenticStepsContainer = document.getElementById('agentic-steps');
-
-        // Token pricing (per 1K tokens) - simulating GPT-4 pricing
-        const PRICING = {
-            input: 0.03,   // $0.03 per 1K input tokens
-            output: 0.06   // $0.06 per 1K output tokens
-        };
-
-        // Multiple example scenarios
-        const examples = [
-            {
-                query: "Explain the difference between TCP and UDP, with a simple analogy.",
-                ai: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 22, outputTokens: 0 },
-                    { delay: 600, message: "2. Processing with pre-trained knowledge...", details: "This is a well-known computer science concept. No web search needed — answering from training data.", inputTokens: 22, outputTokens: 8 },
-                    { delay: 800, message: "3. Generating response:", details: "\"TCP (Transmission Control Protocol) is like sending a registered letter — the postal service confirms delivery, resends if lost, and delivers pages in order. UDP (User Datagram Protocol) is like shouting across a room — faster, but no guarantee the other person heard you or caught every word. Use TCP when reliability matters (web pages, file downloads, emails). Use UDP when speed matters more than perfection (live video, online gaming, voice calls — a dropped frame is better than a frozen stream).\"", inputTokens: 22, outputTokens: 92 }
-                ],
-                rag: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 22, outputTokens: 0 },
-                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'TCP', 'UDP', 'network protocols'...", inputTokens: 22, outputTokens: 18 },
-                    { delay: 700, message: "3. Found relevant documents:", detailsList: ["Doc #71: RFC 793 — Transmission Control Protocol specification", "Doc #44: RFC 768 — User Datagram Protocol specification", "Doc #112: Introduction to Internet Protocols (textbook chapter)"], inputTokens: 0, outputTokens: 32 },
-                    { delay: 900, message: "4. Augmenting query with context:", details: "Adding 3 retrieved documents (2,400 tokens) to the prompt. This is standard reference material the model already knows well.", inputTokens: 2422, outputTokens: 18 },
-                    { delay: 1000, message: "5. Generating grounded response:", details: "\"TCP is a connection-oriented protocol that guarantees reliable, ordered delivery (RFC 793). UDP is a connectionless protocol optimized for speed with no delivery guarantee (RFC 768). Analogy: TCP is like a registered letter with tracking — confirmed delivery, correct order. UDP is like shouting across a room — fast, but some words may be lost. Use TCP for reliability (web, email), UDP for speed (video, gaming).\"", inputTokens: 2422, outputTokens: 88 }
-                ],
-                agentic: [
-                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
-                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Search for authoritative sources on TCP vs UDP.", "Step 2: Cross-reference multiple explanations for accuracy.", "Step 3: Craft an analogy and verify it holds up.", "Step 4: Review and refine the final answer."], inputTokens: 1200, outputTokens: 145 },
-                    { delay: 900, message: "3. Executing: Searching technical sources...", details: "Querying Wikipedia API, MDN Web Docs, and RFC database for TCP and UDP specifications...", inputTokens: 1520, outputTokens: 110 },
-                    { delay: 800, message: "4. Reflecting on sources:", details: "All sources agree on the core differences. This is well-established knowledge — extensive research was unnecessary.", inputTokens: 1780, outputTokens: 95 },
-                    { delay: 700, message: "5. Executing: Generating analogy candidates...", details: "Brainstorming analogies: registered mail vs postcard, phone call vs radio broadcast, waiter vs buffet...", inputTokens: 2010, outputTokens: 120 },
-                    { delay: 600, message: "6. Reflecting on analogy quality:", details: "The registered mail analogy is most accurate — it covers reliability, ordering, and confirmation. Proceeding.", inputTokens: 2260, outputTokens: 88 },
-                    { delay: 800, message: "7. Generating final response:", details: "\"TCP is like sending a registered letter — delivery is confirmed, pages arrive in order, and lost pages are resent. UDP is like shouting across a room — faster, but no guarantee every word lands. Use TCP for reliability (web, email, files), UDP for speed (live video, gaming, voice calls).\"", inputTokens: 2480, outputTokens: 95 }
-                ]
-            },
-            {
-                query: "What's our company's remote work policy, and how many vacation days do I get after 3 years?",
-                ai: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 800, message: "2. Performing web search...", details: "Searching for: 'company remote work policy', 'vacation days after 3 years'...", inputTokens: 28, outputTokens: 14 },
-                    { delay: 1000, message: "3. Processing search results...", details: "Found generic articles about typical remote work policies and PTO benchmarks. No access to this company's specific policies.", inputTokens: 42, outputTokens: 22 },
-                    { delay: 1200, message: "4. Generating response:", details: "\"I don't have access to your company's internal policies. Typical remote work policies vary widely — some companies allow 2-3 days/week, others are fully remote. For US companies, 15-20 vacation days after 3 years is common. However, I cannot tell you YOUR company's specific policy. Please check your employee handbook, internal HR portal, or contact your HR department for accurate information.\"", inputTokens: 64, outputTokens: 82 }
-                ],
-                rag: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 28, outputTokens: 0 },
-                    { delay: 700, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'remote work policy', 'vacation days', 'PTO', 'employee benefits'...", inputTokens: 28, outputTokens: 20 },
-                    { delay: 600, message: "3. Found relevant documents:", detailsList: ["Doc #14: Employee Handbook 2024 — Section 3.2: Remote Work Policy", "Doc #14: Employee Handbook 2024 — Section 4.1: Paid Time Off Schedule", "Doc #27: HR FAQ — Common Benefits Questions"], inputTokens: 0, outputTokens: 30 },
-                    { delay: 800, message: "4. Augmenting query with context:", details: "Adding retrieved HR policy documents (1,850 tokens) to provide exact, sourced answers.", inputTokens: 1878, outputTokens: 18 },
-                    { delay: 900, message: "5. Generating grounded response:", details: "\"Per the Employee Handbook (Section 3.2), our remote work policy allows up to 3 days remote per week. Wednesdays and Thursdays are mandatory in-office collaboration days. Managers may approve full-remote weeks up to 4 times per year. Regarding vacation: per Section 4.1, employees with 3+ years of tenure receive 26 vacation days per year (up from 21 days in years 1-2). Days reset on your work anniversary, not the calendar year. [Sources: Employee Handbook 2024, Sections 3.2 and 4.1]\"", inputTokens: 1878, outputTokens: 105 }
-                ],
-                agentic: [
-                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
-                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Search internal knowledge base for HR policies.", "Step 2: Cross-reference with latest policy updates.", "Step 3: Verify vacation tier for 3-year employees.", "Step 4: Check for any recent policy amendments."], inputTokens: 1200, outputTokens: 155 },
-                    { delay: 900, message: "3. Executing: Querying knowledge base...", details: "Searching internal docs for remote work policy and PTO schedule...", inputTokens: 1520, outputTokens: 105 },
-                    { delay: 700, message: "4. Reflecting on retrieved docs:", details: "Found Employee Handbook sections 3.2 and 4.1. These contain the needed information. Cross-referencing with recent updates...", inputTokens: 1780, outputTokens: 92 },
-                    { delay: 800, message: "5. Executing: Checking for policy amendments...", details: "Searching for HR announcements, policy updates, and memos from the last 6 months...", inputTokens: 2010, outputTokens: 88 },
-                    { delay: 600, message: "6. Reflecting on amendments:", details: "No recent changes to remote work or PTO policy. Handbook sections are current.", inputTokens: 2230, outputTokens: 72 },
-                    { delay: 900, message: "7. Generating final response:", details: "\"Remote work: 3 days/week remote, Wed & Thu in-office (Section 3.2). Vacation: 26 days/year after 3 years of tenure (Section 4.1). No recent amendments. [Sources: Employee Handbook 2024]\"", inputTokens: 2430, outputTokens: 92 }
-                ]
-            },
-            {
-                query: "Check what artists I listened to most this month, find if any of them have concerts coming to Warsaw, and add the dates to my calendar.",
-                ai: [
-                    { delay: 500, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
-                    { delay: 1000, message: "2. Performing web search...", details: "Searching for: 'concerts Warsaw 2024', 'Spotify top artists', 'calendar integration'", inputTokens: 35, outputTokens: 15 },
-                    { delay: 1200, message: "3. Processing search results...", details: "Found general information about concert venues in Warsaw and calendar apps, but no personalized data.", inputTokens: 50, outputTokens: 22 },
-                    { delay: 1500, message: "4. Generating response:", details: "\"I can't access your Spotify listening history or calendar. Popular concert venues in Warsaw include Torwar Hall and Progresja, but I have no way to know which artists YOU listen to. You'll need to: 1) Check your Spotify stats manually, 2) Search for those artists on Songkick or Bandsintown, 3) Add events to your calendar yourself. A single chat pass cannot complete multi-step tasks that require personal data access and actions across multiple services.\"", inputTokens: 72, outputTokens: 95 }
-                ],
-                rag: [
-                    { delay: 400, queryUpdate: true, message: "1. Receiving query...", inputTokens: 35, outputTokens: 0 },
-                    { delay: 800, message: "2. Retrieving relevant documents:", details: "Searching knowledge base for 'concert listings', 'Warsaw events', 'artist schedules'...", inputTokens: 35, outputTokens: 22 },
-                    { delay: 700, message: "3. Found relevant documents:", detailsList: ["Doc #203: Upcoming concerts in Warsaw (Nov-Dec 2024)", "Doc #156: Popular artist tour schedules Europe 2024"], inputTokens: 0, outputTokens: 28 },
-                    { delay: 900, message: "4. Augmenting query with context:", details: "Adding retrieved concert listings to the prompt. But the knowledge base has no access to the user's Spotify data or calendar.", inputTokens: 1235, outputTokens: 22 },
-                    { delay: 1100, message: "5. Generating grounded response:", details: "\"From our concert database: Warsaw upcoming shows include Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), Radiohead (Feb 3, Progresja), and 12 others. However, I cannot access your personal listening history to match these to your taste, and I cannot add events to your calendar. RAG can retrieve static data but cannot take actions or access personal accounts.\"", inputTokens: 1235, outputTokens: 92 }
-                ],
-                agentic: [
-                    { delay: 300, queryUpdate: true, message: "1. Receiving query...", inputTokens: 850, outputTokens: 0 },
-                    { delay: 700, message: "2. Planning approach:", detailsList: ["Step 1: Connect to Spotify API to get user's top artists this month.", "Step 2: For each top artist, query concert databases (Songkick, Bandsintown).", "Step 3: Filter for concerts in Warsaw with upcoming dates.", "Step 4: Use Calendar API to add confirmed events.", "Step 5: Verify all additions and provide summary."], inputTokens: 1200, outputTokens: 185 },
-                    { delay: 1000, message: "3. Executing: Calling Spotify API...", details: "Fetching user's top 10 most-played artists for November 2024...", inputTokens: 1520, outputTokens: 120 },
-                    { delay: 800, message: "4. Reflecting on music data:", details: "Successfully retrieved: Arctic Monkeys, Tame Impala, The Strokes, Radiohead, and 6 others. Proceeding to concert search.", inputTokens: 1780, outputTokens: 145 },
-                    { delay: 1000, message: "5. Executing: Querying concert databases...", details: "Searching Songkick and Bandsintown APIs for Warsaw concerts by these artists...", inputTokens: 2065, outputTokens: 118 },
-                    { delay: 900, message: "6. Reflecting on concert results:", details: "Found 3 matching concerts: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja).", inputTokens: 2320, outputTokens: 152 },
-                    { delay: 1000, message: "7. Executing: Adding to calendar...", details: "Using Google Calendar API to create events with venue details, ticket links, and reminders...", inputTokens: 2610, outputTokens: 125 },
-                    { delay: 800, message: "8. Reflecting on calendar sync:", details: "All 3 events successfully added to calendar. Events include: address, start time, ticket purchase links.", inputTokens: 2870, outputTokens: 138 },
-                    { delay: 1200, message: "9. Generating final response:", details: "\"✅ Task complete! Found 3 concerts by your top artists in Warsaw: Arctic Monkeys (Dec 15, Torwar Hall), Tame Impala (Jan 8, COS Torwar), The Strokes (Feb 3, Progresja). All events have been added to your calendar with venue info and ticket links. You'll receive reminders 1 week and 1 day before each concert.\"", inputTokens: 3145, outputTokens: 172 }
-                ]
-            }
-        ];
-
-        function calculateCost(inputTokens, outputTokens) {
-            const inputCost = (inputTokens / 1000) * PRICING.input;
-            const outputCost = (outputTokens / 1000) * PRICING.output;
-            return (inputCost + outputCost).toFixed(4);
-        }
-
-        function simulateWorkflow(type, stepContents, container) {
-            container.innerHTML = '';
-            let cumulativeDelay = 0;
-            let totalInputTokens = 0;
-            let totalOutputTokens = 0;
-            const userQuery = queryInput.value || "No query entered.";
-
-            stepContents.forEach((stepContent, index) => {
-                setTimeout(() => {
-                    const stepDiv = document.createElement('div');
-                    stepDiv.className = `step step-${index + 1} p-4 rounded-lg transition-all duration-500 ease-in-out transform opacity-0 translate-y-2 bg-white border`;
-                    const borderColor = type === 'ai' ? 'border-blue-100' : type === 'rag' ? 'border-emerald-100' : 'border-violet-100';
-                    stepDiv.classList.add(borderColor);
-
-                    let htmlContent = `<p class="font-medium text-sm text-zinc-900">${stepContent.message}</p>`;
-
-                    if (stepContent.queryUpdate) {
-                         htmlContent += `<p class="text-xs text-zinc-500 mt-2"><em>Query: "${userQuery}"</em></p>`;
-                    }
-                    if (stepContent.details) {
-                        htmlContent += `<p class="text-xs text-zinc-600 mt-2 leading-relaxed">${stepContent.details}</p>`;
-                    }
-                    if (stepContent.detailsList) {
-                        htmlContent += `<ol class="list-decimal list-inside text-xs text-zinc-600 mt-2 space-y-1 leading-relaxed">`;
-                        stepContent.detailsList.forEach(item => {
-                            htmlContent += `<li>${item}</li>`;
-                        });
-                        htmlContent += `</ol>`;
-                    }
-
-                    // Add token count if present
-                    if (stepContent.inputTokens !== undefined || stepContent.outputTokens !== undefined) {
-                        const inTokens = stepContent.inputTokens || 0;
-                        const outTokens = stepContent.outputTokens || 0;
-                        totalInputTokens += inTokens;
-                        totalOutputTokens += outTokens;
-
-                        if (inTokens > 0 || outTokens > 0) {
-                            htmlContent += `<div class="text-xs text-zinc-400 mt-2 font-mono">📊 Tokens: ${inTokens} in / ${outTokens} out</div>`;
-                        }
-                    }
-
-                    stepDiv.innerHTML = htmlContent;
-                    container.appendChild(stepDiv);
-
-                    setTimeout(() => {
-                        stepDiv.classList.add('active');
-                        stepDiv.classList.remove('opacity-0', 'translate-y-2');
-                        stepDiv.classList.add('opacity-100', 'translate-y-0');
-                        container.scrollTop = container.scrollHeight;
-                    }, 50);
-
-                }, cumulativeDelay);
-                cumulativeDelay += stepContent.delay;
-            });
-
-            // Add summary step with total tokens and cost
-            setTimeout(() => {
-                const summaryDiv = document.createElement('div');
-                summaryDiv.className = `step summary-step p-4 rounded-lg transition-all duration-500 ease-in-out transform opacity-0 translate-y-2 bg-gradient-to-br border-2`;
-                const borderColor = type === 'ai' ? 'border-blue-200 from-blue-50 to-white' :
-                                  type === 'rag' ? 'border-emerald-200 from-emerald-50 to-white' :
-                                  'border-violet-200 from-violet-50 to-white';
-                summaryDiv.classList.add(...borderColor.split(' '));
-
-                const totalTokens = totalInputTokens + totalOutputTokens;
-                const totalCost = calculateCost(totalInputTokens, totalOutputTokens);
-
-                summaryDiv.innerHTML = `
-                    <p class="font-bold text-sm text-zinc-900 mb-2">💰 Cost Summary</p>
-                    <div class="space-y-1 text-xs text-zinc-700">
-                        <div class="flex justify-between">
-                            <span>Input tokens:</span>
-                            <span class="font-mono font-medium">${totalInputTokens.toLocaleString()}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span>Output tokens:</span>
-                            <span class="font-mono font-medium">${totalOutputTokens.toLocaleString()}</span>
-                        </div>
-                        <div class="flex justify-between font-semibold pt-1 border-t border-zinc-200">
-                            <span>Total tokens:</span>
-                            <span class="font-mono">${totalTokens.toLocaleString()}</span>
-                        </div>
-                        <div class="flex justify-between font-bold pt-2 text-sm border-t border-zinc-300">
-                            <span>Estimated cost:</span>
-                            <span class="font-mono text-green-600">$${totalCost}</span>
-                        </div>
-                    </div>
-                `;
-
-                container.appendChild(summaryDiv);
-
-                setTimeout(() => {
-                    summaryDiv.classList.add('active');
-                    summaryDiv.classList.remove('opacity-0', 'translate-y-2');
-                    summaryDiv.classList.add('opacity-100', 'translate-y-0');
-                    container.scrollTop = container.scrollHeight;
-                }, 50);
-            }, cumulativeDelay);
-        }
-
-        // Update query input when example is changed
-        exampleSelect.addEventListener('change', function() {
-            const selectedIndex = parseInt(exampleSelect.value);
-            const selectedExample = examples[selectedIndex];
-            queryInput.value = selectedExample.query;
-        });
-
-        processBtn.addEventListener('click', function() {
-            const query = queryInput.value;
-            if (!query.trim()) {
-                queryInput.focus();
-                return;
-            }
-
-            const selectedIndex = parseInt(exampleSelect.value);
-            const selectedExample = examples[selectedIndex];
-
-            processBtn.disabled = true;
-            processBtn.textContent = 'Processing...';
-            processBtn.classList.add('opacity-75', 'cursor-not-allowed');
-
-            simulateWorkflow('ai', selectedExample.ai, aiStepsContainer);
-            simulateWorkflow('rag', selectedExample.rag, ragStepsContainer);
-            simulateWorkflow('agentic', selectedExample.agentic, agenticStepsContainer);
-
-            const maxAiDelay = selectedExample.ai.reduce((sum, step) => sum + step.delay, 0);
-            const maxRagDelay = selectedExample.rag.reduce((sum, step) => sum + step.delay, 0);
-            const maxAgenticDelay = selectedExample.agentic.reduce((sum, step) => sum + step.delay, 0);
-            const maxTotalDelay = Math.max(maxAiDelay, maxRagDelay, maxAgenticDelay) + 1500; // Add extra time for summary
-
-            setTimeout(() => {
-                processBtn.disabled = false;
-                processBtn.textContent = 'Run Demo';
-                processBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-            }, maxTotalDelay + 100);
-        });
-
-        window.addEventListener('load', function() {
-            aiStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
-            ragStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
-            agenticStepsContainer.innerHTML = '<div class="flex items-center justify-center h-full"><p class="text-sm text-zinc-400">Click "Run Demo" to start</p></div>';
-        });
-    </script>
+// ─── Init ───
+build();
+render();
+// ─── Reveal ───
+const FONT_WAIT_MS = 1500;
+const BRAND_FONTS = ['400 1em Outfit', '700 1em Outfit', '400 1em "IBM Plex Sans"', '600 1em "IBM Plex Sans"', '400 1em "Roboto Mono"'];
+Promise.race([
+  Promise.all(BRAND_FONTS.map(f => document.fonts.load(f).catch(() => null))),
+  new Promise(r => setTimeout(r, FONT_WAIT_MS))
+]).then(() => document.documentElement.classList.add('app-ready'));
+</script>
 </body>
 </html>
