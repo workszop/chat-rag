@@ -286,6 +286,35 @@ probe('files: unused PNG diagrams removed and README written', () => {
   assert(readFileSync(resolve(ROOT, 'README.md'), 'utf8').includes('node tests/verify.mjs'), 'README lacks verify instructions');
 }, { static: true });
 
+probe('flow: chip labels are readable (text colour differs from chip fill)', async page => {
+  const same = await page.evaluate(() => [...document.querySelectorAll('.flow-node')].filter(n => { const s = getComputedStyle(n); return s.color === s.backgroundColor; }).map(n => `${n.dataset.lane}:${n.dataset.node}`));
+  assert(same.length === 0, `invisible chip text: ${same}`);
+});
+probe('stepper: the revealed row is on screen above the controls', async page => {
+  for (let i = 0; i < 5; i++) {
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(700);
+    const r = await page.evaluate(() => {
+      const cells = [...document.querySelectorAll('#matrix .cell[data-cell="current"]')];
+      const controls = document.querySelector('.controls').getBoundingClientRect();
+      const top = Math.min(...cells.map(c => c.getBoundingClientRect().top));
+      const bottom = Math.max(...cells.map(c => c.getBoundingClientRect().bottom));
+      return { top, bottom, controlsTop: controls.top, controlsBottom: controls.bottom, vh: innerHeight };
+    });
+    assert(r.controlsBottom <= r.vh && r.controlsTop >= 0, `step ${i + 1}: controls off screen ${JSON.stringify(r)}`);
+    assert(r.top >= 0 && r.bottom <= r.controlsTop + 1, `step ${i + 1}: row not visible ${JSON.stringify(r)}`);
+  }
+});
+
+probe('mobile: each step scrolls to the new row heading', async page => {
+  for (let i = 0; i < 5; i++) {
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(700);
+    const top = await page.evaluate(() => document.querySelector('#matrix .row-head[data-cell="current"]').getBoundingClientRect().top);
+    assert(top >= 60 && top <= 200, `step ${i + 1}: row heading at ${top}px`);
+  }
+}, { viewport: MOBILE });
+
 // ─── Run ───
 const filter = process.argv[2] || '';
 const selected = probes.filter(p => p.name.includes(filter));

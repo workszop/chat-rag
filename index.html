@@ -238,7 +238,7 @@ main > section { margin-block: var(--sp-12); }
 .lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
 /* ─── Controls ─── */
-.controls { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: var(--sp-5) auto 0; padding-inline: var(--sp-5); box-sizing: border-box; }
+.controls { position: sticky; bottom: 0; z-index: 2; background: var(--paper); border-top: 1px solid var(--line); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: var(--sp-5) auto 0; padding-inline: var(--sp-5); box-sizing: border-box; }
 .btn { border: 0; border-radius: var(--r-pill); padding: 10px 20px; font: 600 var(--body-sm) var(--font-sans); cursor: pointer; transition: background-color .2s ease; }
 .btn-primary { background: var(--yellow); color: var(--yellow-ink); }
 .btn-secondary { background: var(--paper-2); color: var(--ink); }
@@ -266,10 +266,14 @@ main > section { margin-block: var(--sp-12); }
 .flow-node + .flow-node::before { content: '→'; margin-right: 6px; color: var(--ink-3); }
 .flow-node[data-added="true"] { border-color: var(--ink); }
 .flow-node.is-active { background: var(--yellow); color: var(--yellow-ink); }
+/* .edu-block makes li inherit the lane's white text; chips sit on white, so pin their ink. */
+.lane-head .flow-node { color: var(--ink); }
+.lane-head .flow-node.is-active { color: var(--yellow-ink); }
 .added-badge { font: 600 var(--caption) var(--font-mono); text-transform: uppercase; }
 .row-head { display: flex; gap: var(--sp-2); align-items: flex-start; padding: var(--sp-4) var(--sp-3); background: var(--paper-2); color: var(--ink); border-radius: var(--r-md); font: 600 var(--body-sm)/1.4 var(--font-display); transition: background-color .25s ease; }
 .row-num { font: 600 var(--caption) var(--font-mono); background: var(--surface); border-radius: var(--r-pill); padding: 0 8px; }
 .row-head[data-cell="current"] { background: var(--yellow); color: var(--yellow-ink); }
+.row-head, .cell { scroll-margin-top: 96px; scroll-margin-bottom: 120px; }
 .cell { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4); box-shadow: var(--shadow-sm); font: var(--body-sm)/1.5 var(--font-sans); }
 .cell[data-cell="hidden"] { background: var(--paper-2); border-style: dashed; box-shadow: none; }
 .cell[data-cell="hidden"] .cell-content { display: none; }
@@ -393,6 +397,7 @@ const LANES = ['chat', 'rag', 'agent'];
 const PHASES = ['source', 'process', 'action', 'answer', 'verdict'];
 const SCENARIO_IDS = ['general', 'company', 'task'];
 const AUTO_MS = 2600;
+const PHONE_QUERY = '(max-width: 768px)';
 const LANG_KEY = 'chat-rag-language';
 const PRICE_PLN_PER_MTOK = { in: 5, out: 20 };
 const FLOW = {
@@ -761,6 +766,16 @@ function goTo(step) {
   App.step = Math.max(0, Math.min(PHASES.length, step));
   if (App.step === PHASES.length) stopPlay();
   render();
+  revealCurrentRow();
+}
+// Keep the row just revealed in view: desktop keeps the whole row above the sticky controls,
+// phones (row stacked into three cells) start the row at its heading under the sticky header.
+function revealCurrentRow() {
+  const cells = matrixEl.querySelectorAll('.cell[data-cell="current"]');
+  if (!cells.length) return;
+  const behavior = matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth';
+  if (matchMedia(PHONE_QUERY).matches) matrixEl.querySelector('.row-head[data-cell="current"]').scrollIntoView({ block: 'start', behavior });
+  else cells[cells.length - 1].scrollIntoView({ block: 'nearest', behavior });
 }
 function next() { goTo(App.step + 1); }
 function userNext() { stopPlay(); next(); }
