@@ -214,6 +214,7 @@ body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-
   --lane-rag: color-mix(in srgb, var(--green) 75%, var(--ink)); --lane-rag-ink: var(--green-ink);
   --lane-agent: var(--play-grape); --lane-agent-ink: var(--blue-ink);
   --shell-max: 1100px;
+  --gutter: 30px;
   --matrix-max: 1360px;
   --row-head-w: 11rem;
   --header-h: 81px; /* 64px logo + 2 x --sp-2 padding + 1px rule */
@@ -224,21 +225,28 @@ body.edu { background: var(--paper); color: var(--ink); font-family: var(--font-
 
 /* ─── Edulab chrome ─── */
 body.edu { margin: 0; }
-.edu-header { position: sticky; top: 0; z-index: 50; width: 100%; background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-.edu-header-inner { max-width: var(--shell-max); margin: 0 auto; padding: var(--sp-2) var(--sp-5); display: flex; align-items: center; gap: var(--sp-3); box-sizing: border-box; }
+.edu-header { position: sticky; top: 0; z-index: 50; width: 100%; background: var(--paper); border-bottom: 1px solid var(--line-2); }
+.edu-header-inner { max-width: var(--shell-max); margin: 0 auto; padding: var(--sp-2) var(--gutter); display: flex; align-items: center; gap: var(--sp-3); box-sizing: border-box; }
 .edu-logo { width: 64px; height: 64px; display: block; margin-right: -6px; }
-.edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: var(--h4); letter-spacing: -.02em; color: var(--ink); }
-.edu-lead { font-size: var(--body-lg); color: var(--ink-2); margin: var(--sp-3) 0 0; }
+.edu-wordmark { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -.02em; color: var(--ink); }
+.edu-lead { font-size: 1.15rem; line-height: 1.6; color: var(--ink-2); margin: 0; }
 
 /* ─── Base ─── */
-.shell { width: 100%; max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--sp-5); box-sizing: border-box; }
-main > section { margin-block: var(--sp-12); }
-.hero { text-align: center; }
+.shell { width: 100%; max-width: var(--shell-max); margin-inline: auto; padding-inline: var(--gutter); box-sizing: border-box; }
+.page-head { max-width: var(--shell-max); margin: 0 auto; padding: 44px var(--gutter) 52px; box-sizing: border-box; text-align: left; }
+.app-title { font-family: var(--font-display); font-weight: 800; font-size: clamp(2.3rem, 5vw, 3.3rem); letter-spacing: -.025em; line-height: 1.05; color: var(--ink); margin: 0 0 14px; }
+/* Section bands: full-bleed, stone / white, split by a hairline */
+.sec { margin: 0; padding: 52px 0 60px; border-top: 1px solid var(--line); }
+.sec:nth-of-type(odd) { background: var(--paper-2); }
+.sec-head { display: flex; align-items: center; gap: 14px; margin-bottom: 26px; }
+.sec-head h2 { margin: 0; }
+.sec-head::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+.footer { padding-block: var(--sp-6) var(--sp-8); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .lane-chip { display: inline-block; background: var(--lane); color: var(--lane-ink); border-radius: var(--r-pill); padding: 2px 12px; font: 600 var(--caption)/1.6 var(--font-mono); text-transform: uppercase; letter-spacing: .04em; }
 .lang-btn { margin-left: auto; background: var(--paper-2); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px; font: 600 var(--caption) var(--font-mono); cursor: pointer; }
-/* Solid ink ring: the edustyl --focus-ring (yellow 45%) is ~1.2:1 on white and invisible on yellow buttons. */
-.lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+/* edustyl focus: white gap + ink band, transparent outline for forced-colours mode. */
+.lang-btn:focus-visible, .btn:focus-visible, .scenario-btn:focus-visible, .choose-go:focus-visible { outline: 3px solid transparent; outline-offset: 2px; box-shadow: var(--focus-ring); }
 
 /* ─── Controls ─── */
 .controls { position: sticky; top: var(--header-h); z-index: 2; background: var(--paper); border-bottom: 1px solid var(--line); padding-block: var(--sp-3); display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); max-width: var(--matrix-max); margin: 0 auto var(--sp-4); padding-inline: var(--sp-5); box-sizing: border-box; }
@@ -249,7 +257,7 @@ main > section { margin-block: var(--sp-12); }
 .progress { flex: 1 1 10rem; height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
 .progress-fill { display: block; height: 100%; width: 0; background: var(--yellow); transition: width .3s ease; }
 .shortcuts-btn { background: var(--paper-2); color: var(--ink-2); border: 0; border-radius: var(--r-pill); padding: 2px 10px; font: 500 var(--caption) var(--font-sans); cursor: pointer; }
-.shortcuts-btn:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+.shortcuts-btn:focus-visible { outline: 3px solid transparent; outline-offset: 2px; box-shadow: var(--focus-ring); }
 .progress-label { font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
 /* ─── Scenario picker & question ─── */
 .scenario-picker { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-block: var(--sp-3) var(--sp-5); }
@@ -260,7 +268,7 @@ main > section { margin-block: var(--sp-12); }
 .scenario-hint { font: var(--caption) var(--font-sans); color: inherit; opacity: .8; }
 .demo { scroll-margin-top: var(--header-h); }
 .question-wrap { margin: 0 0 var(--sp-5); scroll-margin-top: calc(var(--header-h) + var(--sp-3)); }
-.question { margin: var(--sp-2) 0 0; font: 600 var(--body-lg)/1.5 var(--font-display); background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-sm); }
+.question { margin: var(--sp-2) 0 0; font: 600 var(--body-lg)/1.5 var(--font-display); background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-sm); }
 
 /* ─── Matrix ─── */
 .matrix { display: grid; grid-template-columns: var(--row-head-w) repeat(3, minmax(0, 1fr)); gap: var(--sp-3); max-width: var(--matrix-max); margin-inline: auto; padding-inline: var(--sp-5); box-sizing: border-box; }
@@ -279,7 +287,7 @@ main > section { margin-block: var(--sp-12); }
 .row-head { display: flex; gap: var(--sp-2); align-items: flex-start; padding: var(--sp-4) var(--sp-3); background: var(--paper-2); color: var(--ink); border-radius: var(--r-md); font: 600 var(--body-sm)/1.4 var(--font-display); transition: background-color .25s ease; }
 .row-num { font: 600 var(--caption) var(--font-mono); background: var(--surface); border-radius: var(--r-pill); padding: 0 8px; }
 .row-head[data-cell="current"] { background: var(--yellow); color: var(--yellow-ink); }
-.cell { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-md); padding: var(--sp-4); box-shadow: var(--shadow-sm); font: var(--body-sm)/1.5 var(--font-sans); }
+.cell { background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); border-radius: var(--r-md); padding: var(--sp-4); box-shadow: var(--shadow-sm); font: var(--body-sm)/1.5 var(--font-sans); }
 .cell[data-cell="hidden"] { background: var(--paper-2); border-style: dashed; box-shadow: none; }
 .cell[data-cell="hidden"] .cell-content { display: none; }
 .cell:not([data-cell="hidden"]) .cell-placeholder { display: none; }
@@ -308,16 +316,21 @@ main > section { margin-block: var(--sp-12); }
 .cost-bar { height: 8px; background: var(--paper-3); border-radius: var(--r-pill); overflow: hidden; }
 .cost-bar-fill { display: block; height: 100%; background: var(--lane); }
 /* ─── Ladder ─── */
-.ladder-list { list-style: none; padding: 0; margin: var(--sp-5) 0 var(--sp-3); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
-.ladder-step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: var(--sp-5); box-shadow: var(--shadow-sm); }
-.ladder-tagline { margin: var(--sp-3) 0 4px; font: 700 var(--body-lg) var(--font-display); }
+.ladder-list { list-style: none; padding: 0; margin: 0 0 var(--sp-3); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--sp-4); }
+.ladder-step { background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); overflow: hidden; display: flex; flex-direction: column; }
+.card-head { padding: 14px 22px; background: var(--paper-2); border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.card-body { padding: 18px 22px 22px; flex: 1; }
+.ladder-tagline { margin: 0 0 4px; font: 700 var(--body-lg) var(--font-display); color: var(--ink); }
 .ladder-adds { margin: 0 0 var(--sp-3); font: 500 var(--caption) var(--font-mono); color: var(--ink-2); }
 .ladder-analogy { margin: 0; color: var(--ink-2); }
 
 /* ─── Compare ─── */
-.table-wrap { overflow-x: auto; }
-.compare-table { width: 100%; border-collapse: separate; border-spacing: 0; font: var(--body-sm)/1.5 var(--font-sans); }
-.compare-table th, .compare-table td { padding: var(--sp-3); text-align: start; vertical-align: top; border-bottom: 1px solid var(--line); }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line-2); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
+.compare-table { width: 100%; border-collapse: collapse; font: var(--body-sm)/1.5 var(--font-sans); }
+.compare-table th, .compare-table td { padding: 12px 16px; text-align: start; vertical-align: top; border-bottom: 1px solid var(--line); }
+.compare-table thead th { background: var(--paper-3); border-bottom: 1px solid var(--line-2); vertical-align: middle; font: 500 12px var(--font-mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink); }
+.compare-table tbody tr:nth-child(even) > * { background: var(--paper-2); }
+.compare-table tbody tr:last-child > * { border-bottom: none; }
 .compare-table tbody th { font-weight: 600; color: var(--ink); }
 .compare-table td { color: var(--ink-2); }
 
@@ -326,7 +339,7 @@ main > section { margin-block: var(--sp-12); }
 .choose-step { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-3); background: var(--paper-2); border-radius: var(--r-lg); padding: var(--sp-4) var(--sp-5); counter-increment: q; }
 .choose-q { margin: 0; font: 600 var(--body) var(--font-display); }
 .choose-q::before { content: counter(q) '. '; font-family: var(--font-mono); }
-.choose-go { display: inline-flex; align-items: center; gap: var(--sp-2); background: var(--surface); color: var(--ink); border: 0; border-radius: var(--r-pill); padding: 6px 14px 6px 6px; font: 600 var(--caption) var(--font-sans); cursor: pointer; }
+.choose-go { display: inline-flex; align-items: center; gap: var(--sp-2); background: var(--surface); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 5px 13px 5px 5px; font: 600 var(--caption) var(--font-sans); cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 /* ─── Narrow desktop & tablet ─── */
 @media (max-width: 1100px) {
@@ -337,8 +350,12 @@ main > section { margin-block: var(--sp-12); }
 
 /* ─── Phone ─── */
 @media (max-width: 768px) {
-  .shell, .matrix, .controls { padding-inline: var(--sp-4); }
+  :root { --gutter: 16px; }
+  .matrix, .controls { padding-inline: var(--sp-4); }
+  .page-head { padding: 28px var(--gutter) 32px; }
+  .sec { padding: 36px 0 44px; }
   .ladder-list { grid-template-columns: minmax(0, 1fr); }
+  .compare-table { min-width: 560px; }
   .matrix { grid-template-columns: minmax(0, 1fr); }
   .matrix-corner, .lane-head { display: none; }
   .row-head[data-cell="hidden"], .cell[data-cell="hidden"] { display: none; }
@@ -357,18 +374,18 @@ main > section { margin-block: var(--sp-12); }
 </div></header>
 <div id="app" class="app">
   <main>
-    <section class="hero shell">
-      <h1 class="edu-h1" data-i18n="title"></h1>
+    <header class="page-head">
+      <h1 class="app-title" data-i18n="title"></h1>
       <p class="edu-lead" data-i18n="lead"></p>
-    </section>
-    <section class="ladder shell" aria-labelledby="ladderTitle">
-      <h2 id="ladderTitle" class="edu-h2" data-i18n="ladderTitle"></h2>
+    </header>
+    <section class="sec ladder" aria-labelledby="ladderTitle"><div class="shell">
+      <div class="sec-head"><h2 id="ladderTitle" class="edu-h2" data-i18n="ladderTitle"></h2></div>
       <ol id="ladderList" class="ladder-list"></ol>
       <p class="rag-full edu-caption" data-i18n="ragFull"></p>
-    </section>
-    <section id="demo" class="demo" aria-labelledby="demoTitle">
+    </div></section>
+    <section id="demo" class="sec demo" aria-labelledby="demoTitle">
       <div class="shell">
-        <h2 id="demoTitle" class="edu-h2" data-i18n="demoTitle"></h2>
+        <div class="sec-head"><h2 id="demoTitle" class="edu-h2" data-i18n="demoTitle"></h2></div>
         <p class="edu-body-lg" data-i18n="demoLead"></p>
         <p class="edu-overline" data-i18n="scenarioLabel"></p>
         <div id="scenarioPicker" class="scenario-picker"></div>
@@ -390,15 +407,15 @@ main > section { margin-block: var(--sp-12); }
       <p class="cost-note edu-caption shell" data-i18n="costNote"></p>
       <p id="live" class="sr-only" aria-live="polite"></p>
     </section>
-    <section class="compare shell" aria-labelledby="compareTitle">
-      <h2 id="compareTitle" class="edu-h2" data-i18n="compareTitle"></h2>
+    <section class="sec compare" aria-labelledby="compareTitle"><div class="shell">
+      <div class="sec-head"><h2 id="compareTitle" class="edu-h2" data-i18n="compareTitle"></h2></div>
       <div class="table-wrap"><table id="compareTable" class="compare-table"></table></div>
-    </section>
-    <section class="choose shell" aria-labelledby="chooseTitle">
-      <h2 id="chooseTitle" class="edu-h2" data-i18n="chooseTitle"></h2>
+    </div></section>
+    <section class="sec choose" aria-labelledby="chooseTitle"><div class="shell">
+      <div class="sec-head"><h2 id="chooseTitle" class="edu-h2" data-i18n="chooseTitle"></h2></div>
       <p class="edu-body-lg" data-i18n="chooseLead"></p>
       <ol id="chooseList" class="choose-list"></ol>
-    </section>
+    </div></section>
   </main>
   <footer class="footer shell edu-caption" data-i18n="footer"></footer>
 </div>
@@ -934,10 +951,12 @@ function buildMatrix() {
 function buildLadder() {
   const ladder = t('ladder');
   ladderList.replaceChildren(...LANES.map(lane => el('li', { class: 'ladder-step', dataset: { lane } }, [
-    el('span', { class: 'lane-chip', text: ladder[lane].name }),
-    el('p', { class: 'ladder-tagline', text: ladder[lane].tagline }),
-    el('p', { class: 'ladder-adds', text: ladder[lane].adds }),
-    el('p', { class: 'ladder-analogy', text: ladder[lane].analogy })
+    el('div', { class: 'card-head' }, [el('span', { class: 'lane-chip', text: ladder[lane].name })]),
+    el('div', { class: 'card-body' }, [
+      el('p', { class: 'ladder-tagline', text: ladder[lane].tagline }),
+      el('p', { class: 'ladder-adds', text: ladder[lane].adds }),
+      el('p', { class: 'ladder-analogy', text: ladder[lane].analogy })
+    ])
   ])));
 }
 function buildCompare() {
